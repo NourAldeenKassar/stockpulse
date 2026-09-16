@@ -37,8 +37,15 @@ import CurrencyExposure from '@/components/currency-exposure';
 import TopMovers from '@/components/top-movers';
 import WhatIfSimulator from '@/components/what-if-simulator';
 import PositionsTable from '@/components/positions-table';
+import {
+  demoSummary,
+  demoPositions,
+  demoSnapshots,
+  demoInsights,
+} from '@/lib/demo-data';
 
 const STORAGE_KEY = 'dashboard-section-order';
+const DEMO_MODE = true;
 
 const DEFAULT_ORDER = [
   'summary',
@@ -112,6 +119,16 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    if (DEMO_MODE) {
+      setSummary(demoSummary);
+      setPositions(demoPositions);
+      setSnapshots(demoSnapshots);
+      setAccounts([{ id: 'demo', label: 'Demo Portfolio', snapshotIntervalMin: 1440, lastSnapshotAt: null, active: true, createdAt: new Date().toISOString() }]);
+      setSelectedAccount('demo');
+      setLlmSettings({ llmGatewayUrl: 'demo', hasLlmKey: true });
+      setLoading(false);
+      return;
+    }
     api.getLlmSettings().then(setLlmSettings).catch(() => {});
     api
       .listAccounts()
@@ -127,6 +144,7 @@ export default function DashboardPage() {
   }, []);
 
   const loadData = useCallback(async (accountId: string) => {
+    if (DEMO_MODE) return;
     setLoading(true);
     setError('');
     try {
@@ -165,6 +183,7 @@ export default function DashboardPage() {
             <InsightCards
               accountId={selectedAccount}
               llmSettings={llmSettings}
+              initialInsights={DEMO_MODE ? demoInsights : undefined}
             />
           </div>
         ) : null,
