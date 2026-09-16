@@ -49,7 +49,7 @@ export default function RegisterPage() {
       <div className="glass-card glow-cyan relative w-full max-w-md rounded-2xl p-8">
         <div className="mb-8 text-center">
           <h1 className="mb-2 font-heading text-3xl font-bold tracking-tight">
-            Trading212 <span className="text-cyan">Copilot</span>
+            T212 <span className="text-cyan">Copilot</span>
           </h1>
           <p className="text-sm text-text-secondary">Create your account</p>
         </div>

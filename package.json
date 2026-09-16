@@ -1,7 +1,7 @@
 {
-  "name": "trading212-copilot",
+  "name": "t212copilot",
   "version": "0.0.1",
-  "description": "AI-powered Trading212 portfolio tracker",
+  "description": "AI-powered portfolio tracker for Trading 212",
   "author": "",
   "private": true,
   "license": "MIT",

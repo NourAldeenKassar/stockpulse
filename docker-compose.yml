@@ -4,7 +4,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/trading212_copilot
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/t212copilot
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -21,7 +21,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: trading212_copilot
+      POSTGRES_DB: t212copilot
     ports:
       - "5436:5432"
     volumes:
