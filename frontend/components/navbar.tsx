@@ -36,7 +36,7 @@ export default function Navbar() {
             </svg>
           </div>
           <span className="font-heading text-lg font-semibold tracking-tight">
-            T212 <span className="text-cyan">Copilot</span>
+            Stock<span className="text-cyan">Pulse</span>
           </span>
         </Link>
 

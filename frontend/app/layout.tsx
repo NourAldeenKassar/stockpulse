@@ -3,8 +3,8 @@ import { AuthProvider } from '@/lib/auth';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'T212 Copilot',
-  description: 'AI-powered portfolio tracker for Trading 212',
+  title: 'StockPulse',
+  description: 'AI-powered portfolio tracker',
   icons: { icon: '/favicon.svg' },
 };
 
