@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String           @id @default(uuid())
+  email                   String           @unique
+  passwordHash            String
+  llmGatewayUrl           String?
+  llmGatewayKeyEncrypted  String?
+  llmGatewayKeyIv         String?
+  llmGatewayKeyTag        String?
+  createdAt               DateTime         @default(now())
+  accounts                TradingAccount[]
+
+  @@map("users")
+}
+
+model TradingAccount {
+  id                     String              @id @default(uuid())
+  label                  String              @default("Main")
+  apiKeyEncrypted        String
+  encryptionIv           String
+  encryptionTag          String
+  apiSecretEncrypted     String
+  secretEncryptionIv     String
+  secretEncryptionTag    String
+  snapshotIntervalMin Int                 @default(1440)
+  lastSnapshotAt      DateTime?
+  active              Boolean             @default(true)
+  createdAt           DateTime            @default(now())
+  userId              String
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots           PortfolioSnapshot[]
+  insights            InsightRecord[]
+
+  @@map("trading_accounts")
+}
+
+model InsightRecord {
+  id        String         @id @default(uuid())
+  accountId String
+  account   TradingAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  insights  Json
+  createdAt DateTime       @default(now())
+
+  @@index([accountId, createdAt])
+  @@map("insight_records")
+}
+
+model PortfolioSnapshot {
+  id         String         @id @default(uuid())
+  accountId  String
+  account    TradingAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  takenAt    DateTime       @default(now())
+  totalValue Float
+  cash       Float
+  invested   Float
+  ppl        Float
+  result     Float
+  positions  Json
+
+  @@index([accountId, takenAt])
+  @@map("portfolio_snapshots")
+}
