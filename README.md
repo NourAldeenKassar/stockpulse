@@ -4,6 +4,8 @@ A self-hosted, AI-powered portfolio tracker for [Trading 212](https://www.tradin
 
 > **Disclaimer:** This project is not affiliated with, endorsed by, or connected to Trading 212 UK Ltd.
 
+> **Note:** All screenshots below use demo data with fictional portfolio values for illustration purposes.
+
 ![Dashboard](docs/T1.png)
 
 ## Features
