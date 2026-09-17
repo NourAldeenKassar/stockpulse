@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import type { Position } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
+import { Blur } from '@/lib/privacy';
 
 type SortKey =
   | 'ticker'
@@ -188,10 +189,10 @@ export default function PositionsTable({ positions }: Props) {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-text-secondary">
-                    {p.quantity.toFixed(p.quantity % 1 === 0 ? 0 : 4)}
+                    <Blur>{p.quantity.toFixed(p.quantity % 1 === 0 ? 0 : 4)}</Blur>
                   </td>
                   <td className="px-4 py-3 text-sm text-text-secondary">
-                    {formatCurrency(p.averagePricePaid)}
+                    <Blur>{formatCurrency(p.averagePricePaid)}</Blur>
                   </td>
                   <td className="px-4 py-3 text-sm text-text-primary">
                     {formatCurrency(p.currentPrice)}
@@ -199,7 +200,7 @@ export default function PositionsTable({ positions }: Props) {
                   <td
                     className={`px-4 py-3 text-sm font-medium ${p.ppl >= 0 ? 'text-positive' : 'text-negative'}`}
                   >
-                    {formatCurrency(p.ppl)}
+                    <Blur>{formatCurrency(p.ppl)}</Blur>
                   </td>
                   <td
                     className={`px-4 py-3 text-sm font-medium ${p.pplPercent >= 0 ? 'text-positive' : 'text-negative'}`}

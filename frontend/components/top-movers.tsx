@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import type { Position } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
+import { Blur } from '@/lib/privacy';
 
 export default function TopMovers({ positions }: { positions: Position[] }) {
   const { gainers, losers } = useMemo(() => {
@@ -58,7 +59,7 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
                       {p.name}
                     </span>
                     <span className="ml-2 text-xs text-text-muted">
-                      {formatCurrency(p.ppl)}
+                      <Blur>{formatCurrency(p.ppl)}</Blur>
                     </span>
                   </div>
                   <span className="rounded bg-emerald/15 px-2 py-0.5 text-xs font-bold text-emerald">
@@ -88,7 +89,7 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
                       {p.name}
                     </span>
                     <span className="ml-2 text-xs text-text-muted">
-                      {formatCurrency(p.ppl)}
+                      <Blur>{formatCurrency(p.ppl)}</Blur>
                     </span>
                   </div>
                   <span className="rounded bg-rose/15 px-2 py-0.5 text-xs font-bold text-rose">

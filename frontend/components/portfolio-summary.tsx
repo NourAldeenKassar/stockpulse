@@ -2,6 +2,7 @@
 
 import type { AccountSummary } from '@/lib/types';
 import { formatCurrency, formatPercentOf } from '@/lib/format';
+import { Blur } from '@/lib/privacy';
 
 interface SummaryCardProps {
   label: string;
@@ -31,9 +32,9 @@ function SummaryCard({
       <p
         className={`font-heading text-2xl font-bold tracking-tight ${valueClass || 'text-text-primary'}`}
       >
-        {value}
+        <Blur>{value}</Blur>
       </p>
-      {subValue && <p className="mt-1 text-sm text-text-muted">{subValue}</p>}
+      {subValue && <p className="mt-1 text-sm text-text-muted"><Blur>{subValue}</Blur></p>}
     </div>
   );
 }

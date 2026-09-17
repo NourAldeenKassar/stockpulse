@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import type { Position } from '@/lib/types';
 import { formatCurrency } from '@/lib/format';
+import { usePrivacy } from '@/lib/privacy';
 
 const COLORS = [
   '#00d4ff',
@@ -18,14 +19,14 @@ const COLORS = [
   '#fb7185',
 ];
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload, hidden }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0];
   return (
-    <div className="glass-card rounded-lg border border-border-glow px-3 py-2">
+    <div style={{ background: '#1a1a2e', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 8, padding: '8px 12px' }}>
       <p className="text-sm font-medium text-text-primary">{d.name}</p>
       <p className="text-xs text-text-muted">
-        {formatCurrency(d.value)} ({d.payload.percent.toFixed(1)}%)
+        <span className={hidden ? 'select-none blur-md' : ''}>{formatCurrency(d.value)}</span> ({d.payload.percent.toFixed(1)}%)
       </p>
     </div>
   );
@@ -36,6 +37,7 @@ export default function AllocationChart({
 }: {
   positions: Position[];
 }) {
+  const { hidden } = usePrivacy();
   const data = useMemo(() => {
     const totalValue = positions.reduce(
       (s, p) => s + p.walletImpact.currentValue,
@@ -93,7 +95,7 @@ export default function AllocationChart({
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip hidden={hidden} />} />
             </PieChart>
           </ResponsiveContainer>
         </div>

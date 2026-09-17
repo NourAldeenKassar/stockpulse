@@ -2,6 +2,7 @@
 
 import type { Position, AccountSummary } from '@/lib/types';
 import { formatCurrency } from '@/lib/format';
+import { Blur } from '@/lib/privacy';
 
 interface Props {
   summary: AccountSummary;
@@ -49,16 +50,19 @@ export default function StatsRibbon({ summary, positions }: Props) {
       label: 'Positions',
       value: String(totalPositions),
       color: 'text-cyan',
+      sensitive: false,
     },
     {
       label: 'Currencies',
       value: String(currencies.size),
       color: 'text-violet',
+      sensitive: false,
     },
     {
       label: 'Avg Hold',
       value: `${avgHoldingDays}d`,
       color: 'text-text-primary',
+      sensitive: false,
     },
     {
       label: 'Best',
@@ -67,6 +71,7 @@ export default function StatsRibbon({ summary, positions }: Props) {
         ? formatCurrency(best.walletImpact.unrealizedProfitLoss)
         : '',
       color: 'text-emerald',
+      sensitive: true,
     },
     {
       label: 'Worst',
@@ -75,6 +80,7 @@ export default function StatsRibbon({ summary, positions }: Props) {
         ? formatCurrency(worst.walletImpact.unrealizedProfitLoss)
         : '',
       color: 'text-rose',
+      sensitive: true,
     },
     {
       label: 'Realized P&L',
@@ -83,6 +89,7 @@ export default function StatsRibbon({ summary, positions }: Props) {
         summary.investments.realizedProfitLoss >= 0
           ? 'text-emerald'
           : 'text-rose',
+      sensitive: true,
     },
   ];
 
@@ -92,10 +99,12 @@ export default function StatsRibbon({ summary, positions }: Props) {
         <div key={stat.label} className="flex items-center gap-2">
           <span className="text-xs text-text-muted">{stat.label}</span>
           <span className={`text-sm font-semibold ${stat.color}`}>
-            {stat.value}
+            {stat.sensitive ? <Blur>{stat.value}</Blur> : stat.value}
           </span>
           {stat.sub && (
-            <span className={`text-xs ${stat.color}`}>{stat.sub}</span>
+            <span className={`text-xs ${stat.color}`}>
+              {stat.sensitive ? <Blur>{stat.sub}</Blur> : stat.sub}
+            </span>
           )}
         </div>
       ))}

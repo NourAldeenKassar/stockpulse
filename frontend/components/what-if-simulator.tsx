@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import type { Position } from '@/lib/types';
 import { formatCurrency } from '@/lib/format';
+import { Blur } from '@/lib/privacy';
 
 export default function WhatIfSimulator({
   positions,
@@ -122,10 +123,10 @@ export default function WhatIfSimulator({
                     New Value
                   </p>
                   <p className="font-mono text-sm font-semibold">
-                    {formatCurrency(impact.newValue)}
+                    <Blur>{formatCurrency(impact.newValue)}</Blur>
                   </p>
                   <p className="text-xs text-text-muted">
-                    from {formatCurrency(impact.currentValue)}
+                    from <Blur>{formatCurrency(impact.currentValue)}</Blur>
                   </p>
                 </div>
                 <div className="rounded-lg bg-bg-card p-3">
@@ -135,8 +136,10 @@ export default function WhatIfSimulator({
                   <p
                     className={`font-mono text-sm font-bold ${impact.valueDiff >= 0 ? 'text-emerald' : 'text-rose'}`}
                   >
-                    {impact.valueDiff >= 0 ? '+' : ''}
-                    {formatCurrency(impact.valueDiff)}
+                    <Blur>
+                      {impact.valueDiff >= 0 ? '+' : ''}
+                      {formatCurrency(impact.valueDiff)}
+                    </Blur>
                   </p>
                 </div>
                 <div className="rounded-lg bg-bg-card p-3">
@@ -146,8 +149,10 @@ export default function WhatIfSimulator({
                   <p
                     className={`font-mono text-sm font-bold ${impact.portfolioImpact >= 0 ? 'text-emerald' : 'text-rose'}`}
                   >
-                    {impact.portfolioImpact >= 0 ? '+' : ''}
-                    {impact.portfolioImpact.toFixed(2)}%
+                    <Blur>
+                      {impact.portfolioImpact >= 0 ? '+' : ''}
+                      {impact.portfolioImpact.toFixed(2)}%
+                    </Blur>
                   </p>
                 </div>
               </div>

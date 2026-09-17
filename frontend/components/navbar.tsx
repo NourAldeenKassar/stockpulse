@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { usePrivacy } from '@/lib/privacy';
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -11,6 +12,7 @@ const navLinks = [
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { hidden, toggle } = usePrivacy();
   const pathname = usePathname();
 
   return (
@@ -60,6 +62,24 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={toggle}
+            className="rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-card-hover hover:text-text-primary"
+            title={hidden ? 'Show values' : 'Hide values'}
+          >
+            {hidden ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+                <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
           <span className="text-sm text-text-muted">{user?.email}</span>
           <button
             onClick={logout}

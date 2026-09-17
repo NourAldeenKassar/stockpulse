@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import type { Position } from '@/lib/types';
 import { formatCurrency } from '@/lib/format';
+import { Blur } from '@/lib/privacy';
 
 const CURRENCY_COLORS: Record<string, string> = {
   EUR: '#00d4ff',
@@ -70,7 +71,7 @@ export default function CurrencyExposure({
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-text-secondary">
-                {formatCurrency(d.value)}
+                <Blur>{formatCurrency(d.value)}</Blur>
               </span>
               <span className="w-14 text-right text-sm font-semibold text-text-muted">
                 {d.percent.toFixed(1)}%

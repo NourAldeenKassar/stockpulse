@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import type { Snapshot } from '@/lib/types';
 import { formatCurrencyShort } from '@/lib/format';
+import { usePrivacy } from '@/lib/privacy';
 
 const RANGES = [
   { label: '1W', days: 7 },
@@ -27,7 +28,7 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label, hidden }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div className="glass-card rounded-lg border border-border-glow px-4 py-3">
@@ -39,7 +40,7 @@ function CustomTooltip({ active, payload, label }: any) {
           year: 'numeric',
         })}
       </p>
-      <p className="mt-1 font-heading text-lg font-bold text-cyan">
+      <p className={`mt-1 font-heading text-lg font-bold text-cyan ${hidden ? 'select-none blur-md' : ''}`}>
         {formatCurrencyShort(payload[0].value)}
       </p>
     </div>
@@ -51,6 +52,7 @@ export default function PortfolioChart({
 }: {
   snapshots: Snapshot[];
 }) {
+  const { hidden } = usePrivacy();
   const [range, setRange] = useState('ALL');
 
   const filtered = useMemo(() => {
@@ -128,14 +130,14 @@ export default function PortfolioChart({
           />
           <YAxis
             domain={[minValue, maxValue]}
-            tickFormatter={(v: number) => formatCurrencyShort(v)}
+            tickFormatter={(v: number) => hidden ? '***' : formatCurrencyShort(v)}
             stroke="rgba(255,255,255,0.1)"
             tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
             tickLine={false}
             axisLine={false}
             width={80}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip hidden={hidden} />} />
           <Area
             type="monotone"
             dataKey="value"
