@@ -144,9 +144,26 @@ export default function DashboardPage() {
     }
   }, []);
 
+  const refreshLive = useCallback(async (accountId: string) => {
+    try {
+      const [s, p] = await Promise.all([
+        api.getAccountSummary(accountId),
+        api.getAccountPositions(accountId),
+      ]);
+      setSummary(s);
+      setPositions(p);
+    } catch {
+      // silent — don't show errors on background refresh
+    }
+  }, []);
+
   useEffect(() => {
     if (selectedAccount) {
       void loadData(selectedAccount);
+      const interval = setInterval(() => {
+        void refreshLive(selectedAccount);
+      }, 5000);
+      return () => clearInterval(interval);
     }
   }, [selectedAccount, loadData]);
 
