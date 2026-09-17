@@ -74,20 +74,18 @@ const severityBadge: Record<string, string> = {
 interface Props {
   accountId: string;
   llmSettings: LlmSettings | null;
-  initialInsights?: Insight[];
 }
 
-export default function InsightCards({ accountId, llmSettings, initialInsights }: Props) {
-  const [insights, setInsights] = useState<Insight[]>(initialInsights || []);
+export default function InsightCards({ accountId, llmSettings }: Props) {
+  const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [generated, setGenerated] = useState(!!initialInsights?.length);
+  const [generated, setGenerated] = useState(false);
 
   const configured = llmSettings?.hasLlmKey && llmSettings?.llmGatewayUrl;
 
   useEffect(() => {
-    if (initialInsights?.length) return;
-    if (accountId && accountId !== 'demo') {
+    if (accountId) {
       api
         .getInsights(accountId)
         .then((cached) => {
@@ -98,7 +96,7 @@ export default function InsightCards({ accountId, llmSettings, initialInsights }
         })
         .catch(() => {});
     }
-  }, [accountId, initialInsights]);
+  }, [accountId]);
 
   async function handleGenerate() {
     setLoading(true);
