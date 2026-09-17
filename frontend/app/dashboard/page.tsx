@@ -45,7 +45,7 @@ import {
 } from '@/lib/demo-data';
 
 const STORAGE_KEY = 'dashboard-section-order';
-const DEMO_MODE = true;
+const DEMO_MODE = false;
 
 const DEFAULT_ORDER = [
   'summary',
