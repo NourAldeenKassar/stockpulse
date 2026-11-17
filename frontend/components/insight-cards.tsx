@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import type { Insight } from '@/lib/api';
 import * as api from '@/lib/api';
 import type { LlmSettings } from '@/lib/api';
+import { Spinner } from '@/components/ui';
 
 const typeIcons: Record<string, { icon: React.ReactNode; color: string }> = {
   warning: {
@@ -152,7 +153,7 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
 
       {loading && (
         <div className="flex items-center gap-3 py-8">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan border-t-transparent" />
+          <Spinner size="sm" />
           <span className="text-sm text-text-muted">
             AI is analyzing your portfolio...
           </span>

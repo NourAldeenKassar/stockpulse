@@ -1,39 +1,30 @@
+import { createLocalStore } from './local-store';
 import type { AuthTokens } from './types';
 
 const API = process.env.NEXT_PUBLIC_API_URL || '/api';
 
-const ACCESS_KEY = 'accessToken';
-const REFRESH_KEY = 'refreshToken';
+/**
+ * Exported so the auth provider can subscribe: tokens change on login and
+ * logout, and anything deriving the current user has to see that.
+ */
+export const accessTokenStore = createLocalStore('accessToken');
+const refreshTokenStore = createLocalStore('refreshToken');
 
 function getTokens(): { access: string | null; refresh: string | null } {
-  if (typeof window === 'undefined') return { access: null, refresh: null };
-  try {
-    return {
-      access: localStorage.getItem(ACCESS_KEY),
-      refresh: localStorage.getItem(REFRESH_KEY),
-    };
-  } catch {
-    return { access: null, refresh: null };
-  }
+  return {
+    access: accessTokenStore.getSnapshot(),
+    refresh: refreshTokenStore.getSnapshot(),
+  };
 }
 
 export function setTokens(tokens: AuthTokens) {
-  try {
-    localStorage.setItem(ACCESS_KEY, tokens.accessToken);
-    localStorage.setItem(REFRESH_KEY, tokens.refreshToken);
-  } catch {
-    // Storage can be unavailable in private browsing; the session simply
-    // will not survive a reload.
-  }
+  accessTokenStore.set(tokens.accessToken);
+  refreshTokenStore.set(tokens.refreshToken);
 }
 
 export function clearTokens() {
-  try {
-    localStorage.removeItem(ACCESS_KEY);
-    localStorage.removeItem(REFRESH_KEY);
-  } catch {
-    // nothing to clear
-  }
+  accessTokenStore.clear();
+  refreshTokenStore.clear();
 }
 
 export function getAccessToken(): string | null {

@@ -1,15 +1,18 @@
 'use client';
 
 import type { Position, AccountSummary } from '@/lib/types';
+import { averageHoldingDays } from '@/lib/metrics';
 import { formatCurrency } from '@/lib/format';
 import { Blur } from '@/lib/privacy';
 
 interface Props {
   summary: AccountSummary;
   positions: Position[];
+  /** When the data was fetched. Avoids calling Date.now() during render. */
+  asOf: number;
 }
 
-export default function StatsRibbon({ summary, positions }: Props) {
+export default function StatsRibbon({ summary, positions, asOf }: Props) {
   const totalPositions = positions.length;
 
   const best = positions.reduce(
@@ -32,18 +35,7 @@ export default function StatsRibbon({ summary, positions }: Props) {
 
   const currencies = new Set(positions.map((p) => p.instrument.currency));
 
-  const avgHoldingDays =
-    positions.length > 0
-      ? Math.round(
-          positions.reduce((sum, p) => {
-            const days = Math.floor(
-              (Date.now() - new Date(p.createdAt).getTime()) /
-                (1000 * 60 * 60 * 24),
-            );
-            return sum + days;
-          }, 0) / positions.length,
-        )
-      : 0;
+  const avgHoldingDays = averageHoldingDays(positions, asOf);
 
   const stats = [
     {

@@ -5,6 +5,7 @@ import * as api from '@/lib/api';
 import type { TradingAccount } from '@/lib/types';
 import type { LlmSettings } from '@/lib/api';
 import AccountConnectForm from '@/components/account-connect-form';
+import { Spinner } from '@/components/ui';
 
 const INTERVAL_OPTIONS = [
   { value: 60, label: 'Every hour' },
@@ -47,8 +48,17 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    void loadAccounts();
-    void loadLlmSettings();
+    let cancelled = false;
+
+    void (async () => {
+      await loadAccounts();
+      if (cancelled) return;
+      await loadLlmSettings();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadAccounts, loadLlmSettings]);
 
   async function handleDisconnect(id: string) {
@@ -109,7 +119,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan border-t-transparent" />
+        <Spinner />
       </div>
     );
   }
@@ -269,7 +279,9 @@ export default function SettingsPage() {
             <label className="mb-1.5 block text-sm font-medium text-text-secondary">
               API Key{' '}
               {llmSettings?.hasLlmKey && (
-                <span className="text-text-muted">(already set, leave empty to keep)</span>
+                <span className="text-text-muted">
+                  (already set, leave empty to keep)
+                </span>
               )}
             </label>
             <input
@@ -278,7 +290,9 @@ export default function SettingsPage() {
               onChange={(e) => setLlmKey(e.target.value)}
               className="w-full rounded-lg px-4 py-3 text-sm font-mono"
               placeholder={
-                llmSettings?.hasLlmKey ? 'Leave empty to keep current key' : 'Your LLM Gateway API key'
+                llmSettings?.hasLlmKey
+                  ? 'Leave empty to keep current key'
+                  : 'Your LLM Gateway API key'
               }
             />
           </div>

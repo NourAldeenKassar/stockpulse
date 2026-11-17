@@ -1,9 +1,16 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useSyncExternalStore,
+} from 'react';
 import type { ReactNode } from 'react';
+import { createLocalStore } from './local-store';
 
-const STORAGE_KEY = 'privacy-hidden';
+const store = createLocalStore('privacy-hidden');
 
 interface PrivacyContextValue {
   hidden: boolean;
@@ -16,21 +23,25 @@ const PrivacyContext = createContext<PrivacyContextValue>({
 });
 
 export function PrivacyProvider({ children }: { children: ReactNode }) {
-  const [hidden, setHidden] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(STORAGE_KEY) === 'true';
-  });
+  // Read through the store rather than a useState initializer: the server has
+  // no localStorage, so initializing from it makes the first client render
+  // disagree with the server HTML.
+  const raw = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    store.getServerSnapshot,
+  );
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, String(hidden));
-  }, [hidden]);
+  const hidden = raw === 'true';
 
-  const toggle = useCallback(() => setHidden((h) => !h), []);
+  const toggle = useCallback(() => {
+    store.set(store.getSnapshot() === 'true' ? 'false' : 'true');
+  }, []);
+
+  const value = useMemo(() => ({ hidden, toggle }), [hidden, toggle]);
 
   return (
-    <PrivacyContext.Provider value={{ hidden, toggle }}>
-      {children}
-    </PrivacyContext.Provider>
+    <PrivacyContext.Provider value={value}>{children}</PrivacyContext.Provider>
   );
 }
 
