@@ -21,6 +21,14 @@ export class AuthService {
         'JWT_SECRET and JWT_REFRESH_SECRET must be set in environment',
       );
     }
+    if (secret.length < 32 || refreshSecret.length < 32) {
+      throw new Error(
+        'JWT_SECRET and JWT_REFRESH_SECRET must be at least 32 characters',
+      );
+    }
+    if (secret === refreshSecret) {
+      throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must differ');
+    }
     this.jwtSecret = secret;
     this.jwtRefreshSecret = refreshSecret;
   }
