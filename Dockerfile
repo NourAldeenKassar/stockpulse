@@ -33,6 +33,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY --from=backend-builder /app/prisma ./prisma
+COPY --from=backend-builder /app/prisma.config.ts ./
 RUN npx prisma generate
 
 COPY --from=backend-builder /app/dist ./dist
