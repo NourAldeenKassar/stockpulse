@@ -10,6 +10,7 @@ import {
 import type { ReactNode } from 'react';
 import type { User } from './types';
 import { accessTokenStore, clearTokens, setTokens } from './http';
+import { useHydrated } from './use-hydrated';
 import * as api from './api';
 
 interface AuthContextValue {
@@ -47,14 +48,6 @@ function userFromToken(token: string | null): User | null {
   return { id: payload.sub, email: payload.email };
 }
 
-// The server has no token, so the first client render must match it. This flips
-// to true once hydration is done, which is what isLoading represents.
-const hydrationStore = {
-  subscribe: () => () => {},
-  getSnapshot: () => true,
-  getServerSnapshot: () => false,
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const token = useSyncExternalStore(
     accessTokenStore.subscribe,
@@ -62,11 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessTokenStore.getServerSnapshot,
   );
 
-  const hydrated = useSyncExternalStore(
-    hydrationStore.subscribe,
-    hydrationStore.getSnapshot,
-    hydrationStore.getServerSnapshot,
-  );
+  // The server has no token, so the first client render must match it.
+  // isLoading is really "not hydrated yet".
+  const hydrated = useHydrated();
 
   const user = useMemo(() => userFromToken(token), [token]);
 

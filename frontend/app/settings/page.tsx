@@ -5,7 +5,7 @@ import * as api from '@/lib/api';
 import type { TradingAccount } from '@/lib/types';
 import type { LlmSettings } from '@/lib/api';
 import AccountConnectForm from '@/components/account-connect-form';
-import { Spinner } from '@/components/ui';
+import { LocalTime, Spinner } from '@/components/ui';
 
 const INTERVAL_OPTIONS = [
   { value: 60, label: 'Every hour' },
@@ -25,6 +25,7 @@ export default function SettingsPage() {
   const [llmSettings, setLlmSettings] = useState<LlmSettings | null>(null);
   const [llmUrl, setLlmUrl] = useState('');
   const [llmKey, setLlmKey] = useState('');
+  const [finnhubKey, setFinnhubKey] = useState('');
   const [llmSaving, setLlmSaving] = useState(false);
   const [llmSuccess, setLlmSuccess] = useState(false);
 
@@ -87,13 +88,19 @@ export default function SettingsPage() {
     setLlmSaving(true);
     setLlmSuccess(false);
     try {
-      const data: { llmGatewayUrl?: string; llmGatewayKey?: string } = {
+      const data: {
+        llmGatewayUrl?: string;
+        llmGatewayKey?: string;
+        finnhubKey?: string;
+      } = {
         llmGatewayUrl: llmUrl,
       };
       if (llmKey) data.llmGatewayKey = llmKey;
+      if (finnhubKey) data.finnhubKey = finnhubKey;
       const updated = await api.updateLlmSettings(data);
       setLlmSettings(updated);
       setLlmKey('');
+      setFinnhubKey('');
       setLlmSuccess(true);
       setTimeout(() => setLlmSuccess(false), 3000);
     } finally {
@@ -165,13 +172,14 @@ export default function SettingsPage() {
                       </span>
                       <span>
                         Last snapshot:{' '}
-                        {acc.lastSnapshotAt
-                          ? new Date(acc.lastSnapshotAt).toLocaleString()
-                          : 'Never'}
+                        {acc.lastSnapshotAt ? (
+                          <LocalTime iso={acc.lastSnapshotAt} />
+                        ) : (
+                          'Never'
+                        )}
                       </span>
                       <span>
-                        Connected:{' '}
-                        {new Date(acc.createdAt).toLocaleDateString()}
+                        Connected: <LocalTime iso={acc.createdAt} mode="date" />
                       </span>
                     </div>
                   </div>
@@ -245,7 +253,8 @@ export default function SettingsPage() {
           <div>
             <h2 className="font-heading text-lg font-semibold">AI Insights</h2>
             <p className="mt-1 text-sm text-text-secondary">
-              Connect your LLM Gateway to enable AI-powered portfolio insights.
+              Connect your LLM Gateway for portfolio insights, and optionally
+              Finnhub for real analyst data on individual holdings.
             </p>
           </div>
           {llmSettings?.hasLlmKey && (
@@ -295,6 +304,33 @@ export default function SettingsPage() {
                   : 'Your LLM Gateway API key'
               }
             />
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+              Finnhub API Key{' '}
+              {llmSettings?.hasFinnhubKey && (
+                <span className="text-text-muted">
+                  (already set, leave empty to keep)
+                </span>
+              )}
+            </label>
+            <input
+              type="password"
+              value={finnhubKey}
+              onChange={(e) => setFinnhubKey(e.target.value)}
+              className="w-full rounded-lg px-4 py-3 text-sm font-mono"
+              placeholder={
+                llmSettings?.hasFinnhubKey
+                  ? 'Leave empty to keep current key'
+                  : 'Your Finnhub API key'
+              }
+            />
+            <p className="mt-1.5 text-xs text-text-muted">
+              Optional. Supplies real analyst recommendation counts for
+              per-stock analysis. Without it the AI works from your position
+              data alone and no analyst figures are shown.
+            </p>
           </div>
 
           <div className="flex gap-3">

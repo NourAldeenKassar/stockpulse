@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import type { Position } from '@/lib/types';
 import { pplPercent, allocationPercent, totalMarketValue } from '@/lib/metrics';
 import { formatCurrency, formatPercent } from '@/lib/format';
@@ -18,6 +19,8 @@ type SortDir = 'asc' | 'desc';
 
 interface Props {
   positions: Position[];
+  /** Enables links through to the per-stock analysis page. */
+  accountId?: string;
 }
 
 function SortHeader({
@@ -51,7 +54,7 @@ function SortHeader({
   );
 }
 
-export default function PositionsTable({ positions }: Props) {
+export default function PositionsTable({ positions, accountId }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('allocation');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [search, setSearch] = useState('');
@@ -225,12 +228,26 @@ export default function PositionsTable({ positions }: Props) {
                   className="border-b border-border transition-colors hover:bg-bg-card-hover"
                 >
                   <td className="px-4 py-3">
-                    <div>
-                      <span className="text-sm font-semibold">{p.name}</span>
-                      <span className="ml-2 font-mono text-xs text-text-muted">
-                        {p.ticker}
-                      </span>
-                    </div>
+                    {accountId ? (
+                      <Link
+                        href={`/stocks/${encodeURIComponent(p.ticker)}?account=${accountId}`}
+                        className="group inline-flex items-baseline"
+                      >
+                        <span className="text-sm font-semibold transition-colors group-hover:text-cyan">
+                          {p.name}
+                        </span>
+                        <span className="ml-2 font-mono text-xs text-text-muted">
+                          {p.ticker}
+                        </span>
+                      </Link>
+                    ) : (
+                      <div>
+                        <span className="text-sm font-semibold">{p.name}</span>
+                        <span className="ml-2 font-mono text-xs text-text-muted">
+                          {p.ticker}
+                        </span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm text-text-secondary">
                     <Blur>

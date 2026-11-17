@@ -41,6 +41,7 @@ export interface AuthTokens {
 export interface LlmSettings {
   llmGatewayUrl: string;
   hasLlmKey: boolean;
+  hasFinnhubKey: boolean;
 }
 
 export interface Insight {
@@ -48,4 +49,41 @@ export interface Insight {
   body: string;
   type: 'warning' | 'info' | 'suggestion';
   severity: 'low' | 'medium' | 'high';
+}
+
+/** One month of analyst recommendations. Real data, from Finnhub. */
+export interface RecommendationTrend {
+  period: string;
+  strongBuy: number;
+  buy: number;
+  hold: number;
+  sell: number;
+  strongSell: number;
+}
+
+export interface AnalystConsensus {
+  symbol: string;
+  trends: RecommendationTrend[];
+  industry: string | null;
+  source: 'finnhub';
+  fetchedAt: string;
+}
+
+/** Model-written interpretation. Opinion, not data. */
+export interface StockNarrative {
+  summary: string;
+  consensusReading: string;
+  positionNotes: string;
+  risks: string[];
+  considerations: string[];
+}
+
+export interface StockAnalysis {
+  ticker: string;
+  name: string;
+  consensus: AnalystConsensus | null;
+  analysis: StockNarrative | null;
+  provider: string | null;
+  model: string | null;
+  generatedAt: string | null;
 }

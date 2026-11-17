@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import type { Position } from '@/lib/types';
 import { pplPercent } from '@/lib/metrics';
@@ -16,11 +17,16 @@ function getPnlColor(pplPercent: number): string {
 }
 
 function CustomContent(props: any) {
-  const { x, y, width, height, name, pplPercent } = props;
+  const { x, y, width, height, name, pplPercent, ticker, onSelect } = props;
   if (width < 30 || height < 25 || pplPercent === undefined) return null;
 
+  const clickable = Boolean(ticker && onSelect);
+
   return (
-    <g>
+    <g
+      onClick={clickable ? () => onSelect(ticker) : undefined}
+      style={clickable ? { cursor: 'pointer' } : undefined}
+    >
       <rect
         x={x}
         y={y}
@@ -99,15 +105,20 @@ function CustomTooltip({ active, payload }: any) {
 
 export default function PositionHeatmap({
   positions,
+  accountId,
 }: {
   positions: Position[];
+  /** Enables click-through to the per-stock analysis page. */
+  accountId?: string;
 }) {
+  const router = useRouter();
   const data = useMemo(() => {
     return positions
       .filter((p) => p.walletImpact.currentValue > 0)
       .map((p) => ({
         name: p.instrument.name.split(' ')[0],
         fullName: p.instrument.name,
+        ticker: p.instrument.ticker,
         size: p.walletImpact.currentValue,
         ppl: p.walletImpact.unrealizedProfitLoss,
         pplPercent: pplPercent(p),
@@ -151,7 +162,18 @@ export default function PositionHeatmap({
           data={data}
           dataKey="size"
           stroke="none"
-          content={<CustomContent />}
+          content={
+            <CustomContent
+              onSelect={
+                accountId
+                  ? (ticker: string) =>
+                      router.push(
+                        `/stocks/${encodeURIComponent(ticker)}?account=${accountId}`,
+                      )
+                  : undefined
+              }
+            />
+          }
         >
           <Tooltip content={<CustomTooltip />} />
         </Treemap>

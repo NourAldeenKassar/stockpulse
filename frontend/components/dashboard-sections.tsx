@@ -53,7 +53,9 @@ export function buildSections(ctx: SectionContext): Record<string, ReactNode> {
         </div>
       ) : null,
 
-    heatmap: hasPositions ? <PositionHeatmap positions={positions} /> : null,
+    heatmap: hasPositions ? (
+      <PositionHeatmap positions={positions} accountId={selectedAccount} />
+    ) : null,
 
     chart: <PortfolioChart snapshots={snapshots} />,
 
@@ -73,6 +75,8 @@ export function buildSections(ctx: SectionContext): Record<string, ReactNode> {
 
     simulator: hasPositions ? <WhatIfSimulator positions={positions} /> : null,
 
-    positions: hasPositions ? <PositionsTable positions={positions} /> : null,
+    positions: hasPositions ? (
+      <PositionsTable positions={positions} accountId={selectedAccount} />
+    ) : null,
   };
 }
