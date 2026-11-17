@@ -19,6 +19,11 @@ COPY frontend/package*.json ./
 RUN npm install
 
 COPY frontend/ .
+
+# The frontend re-exports the Trading212 types from the backend so the two
+# cannot drift. That file has to exist at ../src for the type check to resolve.
+COPY src/trading212/trading212.types.ts /app/src/trading212/trading212.types.ts
+
 RUN npm run build
 
 # Production
