@@ -115,10 +115,7 @@ export default function HealthScore({ summary, positions }: Props) {
 
       <div className="flex items-center gap-8">
         <div className="relative h-36 w-36 shrink-0">
-          <svg
-            viewBox="0 0 120 120"
-            className="h-full w-full -rotate-90"
-          >
+          <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
             <circle
               cx="60"
               cy="60"
@@ -144,10 +141,7 @@ export default function HealthScore({ summary, positions }: Props) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span
-              className="font-heading text-3xl font-bold"
-              style={{ color }}
-            >
+            <span className="font-heading text-3xl font-bold" style={{ color }}>
               {total}
             </span>
             <span className="text-xs text-text-muted">{label}</span>

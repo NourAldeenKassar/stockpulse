@@ -23,10 +23,20 @@ function CustomTooltip({ active, payload, hidden }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0];
   return (
-    <div style={{ background: '#1a1a2e', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 8, padding: '8px 12px' }}>
+    <div
+      style={{
+        background: '#1a1a2e',
+        border: '1px solid rgba(0,212,255,0.2)',
+        borderRadius: 8,
+        padding: '8px 12px',
+      }}
+    >
       <p className="text-sm font-medium text-text-primary">{d.name}</p>
       <p className="text-xs text-text-muted">
-        <span className={hidden ? 'select-none blur-md' : ''}>{formatCurrency(d.value)}</span> ({d.payload.percent.toFixed(1)}%)
+        <span className={hidden ? 'select-none blur-md' : ''}>
+          {formatCurrency(d.value)}
+        </span>{' '}
+        ({d.payload.percent.toFixed(1)}%)
       </p>
     </div>
   );
@@ -48,9 +58,7 @@ export default function AllocationChart({
         name: p.instrument.name,
         value: p.walletImpact.currentValue,
         percent:
-          totalValue > 0
-            ? (p.walletImpact.currentValue / totalValue) * 100
-            : 0,
+          totalValue > 0 ? (p.walletImpact.currentValue / totalValue) * 100 : 0,
       }))
       .sort((a, b) => b.value - a.value);
 

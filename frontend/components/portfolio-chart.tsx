@@ -40,7 +40,9 @@ function CustomTooltip({ active, payload, label, hidden }: any) {
           year: 'numeric',
         })}
       </p>
-      <p className={`mt-1 font-heading text-lg font-bold text-cyan ${hidden ? 'select-none blur-md' : ''}`}>
+      <p
+        className={`mt-1 font-heading text-lg font-bold text-cyan ${hidden ? 'select-none blur-md' : ''}`}
+      >
         {formatCurrencyShort(payload[0].value)}
       </p>
     </div>
@@ -130,7 +132,9 @@ export default function PortfolioChart({
           />
           <YAxis
             domain={[minValue, maxValue]}
-            tickFormatter={(v: number) => hidden ? '***' : formatCurrencyShort(v)}
+            tickFormatter={(v: number) =>
+              hidden ? '***' : formatCurrencyShort(v)
+            }
             stroke="rgba(255,255,255,0.1)"
             tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
             tickLine={false}

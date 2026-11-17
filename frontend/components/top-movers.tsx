@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { Position } from '@/lib/types';
+import { pplPercent } from '@/lib/metrics';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Blur } from '@/lib/privacy';
 
@@ -12,10 +13,7 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
       ticker: p.instrument.ticker,
       name: p.instrument.name,
       ppl: p.walletImpact.unrealizedProfitLoss,
-      pplPercent:
-        p.averagePricePaid > 0
-          ? ((p.currentPrice - p.averagePricePaid) / p.averagePricePaid) * 100
-          : 0,
+      pplPercent: pplPercent(p),
     }));
 
     const sorted = [...withPercent].sort((a, b) => b.pplPercent - a.pplPercent);
@@ -55,9 +53,7 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
                   className="flex items-center justify-between rounded-lg bg-emerald-glow px-3 py-2"
                 >
                   <div>
-                    <span className="text-sm font-semibold">
-                      {p.name}
-                    </span>
+                    <span className="text-sm font-semibold">{p.name}</span>
                     <span className="ml-2 text-xs text-text-muted">
                       <Blur>{formatCurrency(p.ppl)}</Blur>
                     </span>
@@ -85,9 +81,7 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
                   className="flex items-center justify-between rounded-lg bg-rose-glow px-3 py-2"
                 >
                   <div>
-                    <span className="text-sm font-semibold">
-                      {p.name}
-                    </span>
+                    <span className="text-sm font-semibold">{p.name}</span>
                     <span className="ml-2 text-xs text-text-muted">
                       <Blur>{formatCurrency(p.ppl)}</Blur>
                     </span>

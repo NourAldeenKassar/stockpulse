@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import type { Position } from '@/lib/types';
+import { pplPercent, allocationPercent, totalMarketValue } from '@/lib/metrics';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Blur } from '@/lib/privacy';
 
@@ -19,15 +20,43 @@ interface Props {
   positions: Position[];
 }
 
+function SortHeader({
+  label,
+  field,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  label: string;
+  field: SortKey;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  onSort: (key: SortKey) => void;
+}) {
+  const active = sortKey === field;
+  return (
+    <th
+      onClick={() => onSort(field)}
+      className="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted transition-colors hover:text-text-secondary"
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {active && (
+          <span className="text-cyan">
+            {sortDir === 'asc' ? '\u25B2' : '\u25BC'}
+          </span>
+        )}
+      </span>
+    </th>
+  );
+}
+
 export default function PositionsTable({ positions }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('allocation');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [search, setSearch] = useState('');
 
-  const totalValue = positions.reduce(
-    (sum, p) => sum + p.walletImpact.currentValue,
-    0,
-  );
+  const totalValue = totalMarketValue(positions);
 
   const enriched = useMemo(() => {
     return positions.map((p) => ({
@@ -36,14 +65,8 @@ export default function PositionsTable({ positions }: Props) {
       name: p.instrument.name,
       ppl: p.walletImpact.unrealizedProfitLoss,
       marketValue: p.walletImpact.currentValue,
-      pplPercent:
-        p.averagePricePaid > 0
-          ? ((p.currentPrice - p.averagePricePaid) / p.averagePricePaid) * 100
-          : 0,
-      allocation:
-        totalValue > 0
-          ? (p.walletImpact.currentValue / totalValue) * 100
-          : 0,
+      pplPercent: pplPercent(p),
+      allocation: allocationPercent(p, totalValue),
     }));
   }, [positions, totalValue]);
 
@@ -106,25 +129,6 @@ export default function PositionsTable({ positions }: Props) {
     }
   }
 
-  function SortHeader({ label, field }: { label: string; field: SortKey }) {
-    const active = sortKey === field;
-    return (
-      <th
-        onClick={() => handleSort(field)}
-        className="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted transition-colors hover:text-text-secondary"
-      >
-        <span className="inline-flex items-center gap-1">
-          {label}
-          {active && (
-            <span className="text-cyan">
-              {sortDir === 'asc' ? '\u25B2' : '\u25BC'}
-            </span>
-          )}
-        </span>
-      </th>
-    );
-  }
-
   return (
     <div className="glass-card overflow-hidden rounded-xl">
       <div className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -163,13 +167,55 @@ export default function PositionsTable({ positions }: Props) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <SortHeader label="Ticker" field="ticker" />
-                <SortHeader label="Qty" field="quantity" />
-                <SortHeader label="Avg Price" field="averagePrice" />
-                <SortHeader label="Price" field="currentPrice" />
-                <SortHeader label="P&L" field="ppl" />
-                <SortHeader label="P&L %" field="pplPercent" />
-                <SortHeader label="Alloc %" field="allocation" />
+                <SortHeader
+                  label="Ticker"
+                  field="ticker"
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSort={handleSort}
+                />
+                <SortHeader
+                  label="Qty"
+                  field="quantity"
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSort={handleSort}
+                />
+                <SortHeader
+                  label="Avg Price"
+                  field="averagePrice"
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSort={handleSort}
+                />
+                <SortHeader
+                  label="Price"
+                  field="currentPrice"
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSort={handleSort}
+                />
+                <SortHeader
+                  label="P&L"
+                  field="ppl"
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSort={handleSort}
+                />
+                <SortHeader
+                  label="P&L %"
+                  field="pplPercent"
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSort={handleSort}
+                />
+                <SortHeader
+                  label="Alloc %"
+                  field="allocation"
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSort={handleSort}
+                />
               </tr>
             </thead>
             <tbody>
@@ -180,16 +226,16 @@ export default function PositionsTable({ positions }: Props) {
                 >
                   <td className="px-4 py-3">
                     <div>
-                      <span className="text-sm font-semibold">
-                        {p.name}
-                      </span>
+                      <span className="text-sm font-semibold">{p.name}</span>
                       <span className="ml-2 font-mono text-xs text-text-muted">
                         {p.ticker}
                       </span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-text-secondary">
-                    <Blur>{p.quantity.toFixed(p.quantity % 1 === 0 ? 0 : 4)}</Blur>
+                    <Blur>
+                      {p.quantity.toFixed(p.quantity % 1 === 0 ? 0 : 4)}
+                    </Blur>
                   </td>
                   <td className="px-4 py-3 text-sm text-text-secondary">
                     <Blur>{formatCurrency(p.averagePricePaid)}</Blur>

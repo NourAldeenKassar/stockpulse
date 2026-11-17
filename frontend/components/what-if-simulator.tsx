@@ -33,7 +33,8 @@ export default function WhatIfSimulator({
       (s, p) => s + p.walletImpact.currentValue,
       0,
     );
-    const portfolioImpact = totalPortfolio > 0 ? (valueDiff / totalPortfolio) * 100 : 0;
+    const portfolioImpact =
+      totalPortfolio > 0 ? (valueDiff / totalPortfolio) * 100 : 0;
 
     return {
       currentPrice: selected.currentPrice,
@@ -67,7 +68,8 @@ export default function WhatIfSimulator({
             <option value="">Choose a position...</option>
             {sorted.map((p) => (
               <option key={p.instrument.ticker} value={p.instrument.ticker}>
-                {p.instrument.name} ({formatCurrency(p.walletImpact.currentValue)})
+                {p.instrument.name} (
+                {formatCurrency(p.walletImpact.currentValue)})
               </option>
             ))}
           </select>

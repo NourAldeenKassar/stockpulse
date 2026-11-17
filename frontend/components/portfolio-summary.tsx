@@ -34,7 +34,11 @@ function SummaryCard({
       >
         <Blur>{value}</Blur>
       </p>
-      {subValue && <p className="mt-1 text-sm text-text-muted"><Blur>{subValue}</Blur></p>}
+      {subValue && (
+        <p className="mt-1 text-sm text-text-muted">
+          <Blur>{subValue}</Blur>
+        </p>
+      )}
     </div>
   );
 }
@@ -76,7 +80,9 @@ export default function PortfolioSummary({
       <SummaryCard
         label="Cash Available"
         value={formatCurrency(cashAvailable)}
-        subValue={formatPercentOf(cashAvailable, summary.totalValue) + ' of portfolio'}
+        subValue={
+          formatPercentOf(cashAvailable, summary.totalValue) + ' of portfolio'
+        }
         icon={
           <svg
             width="18"

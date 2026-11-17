@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import type { Position } from '@/lib/types';
+import { pplPercent } from '@/lib/metrics';
 import { formatCurrency } from '@/lib/format';
 
 function getPnlColor(pplPercent: number): string {
@@ -62,14 +63,31 @@ function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div style={{ background: '#1a1a2e', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 8, padding: '10px 14px', zIndex: 50 }}>
-      <p style={{ color: '#f0f0f0', fontSize: 13, fontWeight: 600 }}>{d.fullName}</p>
+    <div
+      style={{
+        background: '#1a1a2e',
+        border: '1px solid rgba(0,212,255,0.2)',
+        borderRadius: 8,
+        padding: '10px 14px',
+        zIndex: 50,
+      }}
+    >
+      <p style={{ color: '#f0f0f0', fontSize: 13, fontWeight: 600 }}>
+        {d.fullName}
+      </p>
       <div style={{ marginTop: 4, display: 'flex', gap: 12 }}>
         <span style={{ color: '#94a3b8', fontSize: 12 }}>
           Value: {formatCurrency(d.size)}
         </span>
-        <span style={{ color: d.pplPercent >= 0 ? '#10b981' : '#f43f5e', fontSize: 12, fontWeight: 600 }}>
-          {d.pplPercent >= 0 ? '+' : ''}{d.pplPercent?.toFixed(2)}%
+        <span
+          style={{
+            color: d.pplPercent >= 0 ? '#10b981' : '#f43f5e',
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          {d.pplPercent >= 0 ? '+' : ''}
+          {d.pplPercent?.toFixed(2)}%
         </span>
       </div>
       <span style={{ color: '#64748b', fontSize: 11 }}>
@@ -92,10 +110,7 @@ export default function PositionHeatmap({
         fullName: p.instrument.name,
         size: p.walletImpact.currentValue,
         ppl: p.walletImpact.unrealizedProfitLoss,
-        pplPercent:
-          p.averagePricePaid > 0
-            ? ((p.currentPrice - p.averagePricePaid) / p.averagePricePaid) * 100
-            : 0,
+        pplPercent: pplPercent(p),
       }))
       .sort((a, b) => b.size - a.size);
   }, [positions]);

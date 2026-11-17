@@ -115,9 +115,7 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
   if (!configured) {
     return (
       <div className="glass-card rounded-xl p-6">
-        <h2 className="mb-2 font-heading text-lg font-semibold">
-          AI Insights
-        </h2>
+        <h2 className="mb-2 font-heading text-lg font-semibold">AI Insights</h2>
         <p className="text-sm text-text-muted">
           Configure your LLM Gateway in{' '}
           <a href="/settings" className="text-cyan hover:text-cyan-dim">
@@ -163,7 +161,8 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
 
       {!loading && insights.length === 0 && !generated && (
         <p className="text-sm text-text-muted">
-          Click "Generate Insights" to get AI analysis of your portfolio.
+          Click &ldquo;Generate Insights&rdquo; to get AI analysis of your
+          portfolio.
         </p>
       )}
 

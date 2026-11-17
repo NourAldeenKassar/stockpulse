@@ -67,24 +67,24 @@ export default function StatsRibbon({ summary, positions }: Props) {
     {
       label: 'Best',
       value: best ? best.instrument.name.split(' ')[0] : '-',
-      sub: best
-        ? formatCurrency(best.walletImpact.unrealizedProfitLoss)
-        : '',
+      sub: best ? formatCurrency(best.walletImpact.unrealizedProfitLoss) : '',
       color: 'text-emerald',
       sensitive: true,
     },
     {
       label: 'Worst',
       value: worst ? worst.instrument.name.split(' ')[0] : '-',
-      sub: worst
-        ? formatCurrency(worst.walletImpact.unrealizedProfitLoss)
-        : '',
+      sub: worst ? formatCurrency(worst.walletImpact.unrealizedProfitLoss) : '',
       color: 'text-rose',
       sensitive: true,
     },
     {
       label: 'Realized P&L',
-      value: formatCurrency(summary.investments.realizedProfitLoss, 'EUR', true),
+      value: formatCurrency(
+        summary.investments.realizedProfitLoss,
+        'EUR',
+        true,
+      ),
       color:
         summary.investments.realizedProfitLoss >= 0
           ? 'text-emerald'
