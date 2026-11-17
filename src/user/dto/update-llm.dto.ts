@@ -10,4 +10,9 @@ export class UpdateLlmDto {
   @IsString()
   @MaxLength(512)
   llmGatewayKey?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(512)
+  finnhubKey?: string;
 }

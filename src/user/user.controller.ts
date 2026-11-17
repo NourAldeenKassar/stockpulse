@@ -24,6 +24,7 @@ export class UserController {
       user.id,
       dto.llmGatewayUrl,
       dto.llmGatewayKey,
+      dto.finnhubKey,
     );
   }
 }

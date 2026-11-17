@@ -16,12 +16,14 @@ export class UserService {
       select: {
         llmGatewayUrl: true,
         llmGatewayKeyEncrypted: true,
+        finnhubKeyEncrypted: true,
       },
     });
 
     return {
       llmGatewayUrl: user.llmGatewayUrl || '',
       hasLlmKey: !!user.llmGatewayKeyEncrypted,
+      hasFinnhubKey: !!user.finnhubKeyEncrypted,
     };
   }
 
@@ -29,6 +31,7 @@ export class UserService {
     userId: string,
     llmGatewayUrl?: string,
     llmGatewayKey?: string,
+    finnhubKey?: string,
   ) {
     const data: Prisma.UserUpdateInput = {};
 
@@ -45,12 +48,37 @@ export class UserService {
       data.llmGatewayKeyTag = encrypted?.tag ?? null;
     }
 
+    if (finnhubKey !== undefined) {
+      const encrypted = finnhubKey ? this.crypto.encrypt(finnhubKey) : null;
+      data.finnhubKeyEncrypted = encrypted?.ciphertext ?? null;
+      data.finnhubKeyIv = encrypted?.iv ?? null;
+      data.finnhubKeyTag = encrypted?.tag ?? null;
+    }
+
     await this.prisma.user.update({
       where: { id: userId },
       data,
     });
 
     return this.getLlmSettings(userId);
+  }
+
+  /** Null when the user has not configured a Finnhub key. */
+  async decryptFinnhubKey(userId: string): Promise<string | null> {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: {
+        finnhubKeyEncrypted: true,
+        finnhubKeyIv: true,
+        finnhubKeyTag: true,
+      },
+    });
+
+    return this.crypto.tryDecryptField({
+      ciphertext: user.finnhubKeyEncrypted,
+      iv: user.finnhubKeyIv,
+      tag: user.finnhubKeyTag,
+    });
   }
 
   async decryptLlmKey(

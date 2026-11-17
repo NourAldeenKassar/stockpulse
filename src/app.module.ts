@@ -11,6 +11,7 @@ import { SnapshotModule } from './snapshot/snapshot.module.js';
 import { UserModule } from './user/user.module.js';
 import { LlmModule } from './llm/llm.module.js';
 import { InsightModule } from './insight/insight.module.js';
+import { MarketDataModule } from './marketdata/marketdata.module.js';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InsightModule } from './insight/insight.module.js';
     UserModule,
     LlmModule,
     InsightModule,
+    MarketDataModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
