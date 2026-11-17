@@ -198,7 +198,7 @@ export default function StockPage() {
           <SectionHeading>Analyst consensus</SectionHeading>
           <p className="text-sm text-text-muted">
             {result
-              ? 'No analyst data could be matched to this listing, so none is shown rather than guessed. Non-US listings often cannot be resolved.'
+              ? 'No analyst data could be matched to this holding, so none is shown rather than guessed. Funds and ETFs generally have no analyst coverage.'
               : 'Generate an analysis to fetch analyst recommendations for this holding.'}
           </p>
         </Card>

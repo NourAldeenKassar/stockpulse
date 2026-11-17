@@ -35,8 +35,12 @@ A self-hosted, AI-powered portfolio tracker for [Trading 212](https://www.tradin
 - Only this analysis uses the paid tier of the LLM Gateway (`freeOnly: false`);
   portfolio insights stay on the free tier. Results are cached per holding so
   reopening a stock does not re-bill a paid provider
-- Non-US listings often cannot be matched to a market-data symbol. When that
-  happens no analyst figures are shown rather than guessed ones
+- European listings are matched via their ISIN. Because venue-suffixed symbols
+  are premium-gated on Finnhub, the unsuffixed symbol is used instead, but only
+  when its registered company name matches the one the ISIN resolved to — so a
+  base-symbol collision cannot attach another company's ratings to a holding
+- Funds and ETFs generally have no analyst coverage. When nothing can be
+  matched, no analyst figures are shown rather than guessed ones
 
 **What-If Simulator**
 - Select any position, drag the price change slider (-50% to +50%)

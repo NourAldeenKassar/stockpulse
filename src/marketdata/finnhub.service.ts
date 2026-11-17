@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RateLimiter } from '../common/rate-limiter.js';
 import { parseTrading212Ticker } from './symbol.js';
+import { namesMatch } from './company-name.js';
 import type {
   AnalystConsensus,
   CompanyProfile,
@@ -71,15 +72,62 @@ export class FinnhubService {
       const search = await this.request<SymbolSearchResult>(apiKey, '/search', {
         q: isin,
       });
-      const hit = search?.result?.find((r) => r.type === 'Common Stock');
-      if (hit?.symbol) return hit.symbol;
-      if (search?.result?.[0]?.symbol) return search.result[0].symbol;
+      const hit =
+        search?.result?.find((r) => r.type === 'Common Stock') ??
+        search?.result?.[0];
+
+      if (hit?.symbol) {
+        const base = await this.unsuffixedIfSameCompany(
+          apiKey,
+          hit.symbol,
+          hit.description,
+        );
+        return base ?? hit.symbol;
+      }
     }
 
     this.logger.log(
       `No confident symbol for ${ticker}; consensus will be omitted`,
     );
     return null;
+  }
+
+  /**
+   * An ISIN search for a European listing returns a venue-suffixed symbol such
+   * as ASML.AS or SAP.DE, and those are premium-gated: the free tier answers
+   * 403 and the holding would show no analyst data at all. The unsuffixed
+   * symbol usually is available, and analyst coverage is a property of the
+   * company rather than the venue, so it is the right data to show.
+   *
+   * The danger is that a base symbol can belong to an entirely different
+   * company, which would attach the wrong ratings to the position. So the base
+   * is only used when its registered company name matches the one the ISIN
+   * resolved to. Returns null when it cannot be confirmed.
+   */
+  private async unsuffixedIfSameCompany(
+    apiKey: string,
+    symbol: string,
+    expectedName: string,
+  ): Promise<string | null> {
+    const dot = symbol.indexOf('.');
+    if (dot <= 0) return null;
+
+    const base = symbol.slice(0, dot);
+    const profile = await this.request<CompanyProfile>(
+      apiKey,
+      '/stock/profile2',
+      { symbol: base },
+    );
+
+    if (!profile?.name || !expectedName) return null;
+    if (!namesMatch(profile.name, expectedName)) {
+      this.logger.log(
+        `Base symbol ${base} is ${profile.name}, not ${expectedName}; not borrowing its coverage`,
+      );
+      return null;
+    }
+
+    return base;
   }
 
   async getConsensus(
