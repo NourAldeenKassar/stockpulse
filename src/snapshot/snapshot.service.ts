@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CryptoService } from '../crypto/crypto.service.js';
 import { Trading212Service } from '../trading212/trading212.service.js';
+import { decryptAccountCredentials } from '../account/account-credentials.js';
+import type { Prisma } from '@prisma/client';
 
 @Injectable()
 export class SnapshotService {
@@ -18,15 +20,9 @@ export class SnapshotService {
       where: { id: accountId },
     });
 
-    const apiKey = this.crypto.decrypt(
-      account.apiKeyEncrypted,
-      account.encryptionIv,
-      account.encryptionTag,
-    );
-    const apiSecret = this.crypto.decrypt(
-      account.apiSecretEncrypted,
-      account.secretEncryptionIv,
-      account.secretEncryptionTag,
+    const { apiKey, apiSecret } = decryptAccountCredentials(
+      this.crypto,
+      account,
     );
 
     const [summary, positions] = await Promise.all([
@@ -43,7 +39,7 @@ export class SnapshotService {
           invested: summary.investments.totalCost,
           ppl: summary.investments.unrealizedProfitLoss,
           result: summary.investments.realizedProfitLoss,
-          positions: positions as any,
+          positions: positions as unknown as Prisma.InputJsonValue,
         },
       }),
       this.prisma.tradingAccount.update({
@@ -56,12 +52,13 @@ export class SnapshotService {
   }
 
   async getHistory(accountId: string, from?: string, to?: string) {
-    const where: any = { accountId };
+    const where: Prisma.PortfolioSnapshotWhereInput = { accountId };
 
     if (from || to) {
-      where.takenAt = {};
-      if (from) where.takenAt.gte = new Date(from);
-      if (to) where.takenAt.lte = new Date(to);
+      where.takenAt = {
+        ...(from && { gte: new Date(from) }),
+        ...(to && { lte: new Date(to) }),
+      };
     }
 
     return this.prisma.portfolioSnapshot.findMany({

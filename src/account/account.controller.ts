@@ -6,11 +6,12 @@ import {
   Delete,
   Body,
   Param,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AccountService } from './account.service.js';
 import { AuthGuard } from '../auth/auth.guard.js';
+import { CurrentUser } from '../auth/current-user.decorator.js';
+import type { AuthenticatedUser } from '../auth/current-user.decorator.js';
 import { ConnectAccountDto } from './dto/connect-account.dto.js';
 import { UpdateAccountDto } from './dto/update-account.dto.js';
 
@@ -20,9 +21,12 @@ export class AccountController {
   constructor(private accountService: AccountService) {}
 
   @Post()
-  connect(@Req() req: any, @Body() dto: ConnectAccountDto) {
+  connect(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ConnectAccountDto,
+  ) {
     return this.accountService.connect(
-      req.user.id,
+      user.id,
       dto.apiKey,
       dto.apiSecret,
       dto.label,
@@ -30,31 +34,31 @@ export class AccountController {
   }
 
   @Get()
-  list(@Req() req: any) {
-    return this.accountService.listAccounts(req.user.id);
+  list(@CurrentUser() user: AuthenticatedUser) {
+    return this.accountService.listAccounts(user.id);
   }
 
   @Patch(':id')
   update(
-    @Req() req: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
     @Body() dto: UpdateAccountDto,
   ) {
-    return this.accountService.updateAccount(req.user.id, id, dto);
+    return this.accountService.updateAccount(user.id, id, dto);
   }
 
   @Delete(':id')
-  disconnect(@Req() req: any, @Param('id') id: string) {
-    return this.accountService.disconnect(req.user.id, id);
+  disconnect(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.accountService.disconnect(user.id, id);
   }
 
   @Get(':id/summary')
-  summary(@Req() req: any, @Param('id') id: string) {
-    return this.accountService.getLiveSummary(req.user.id, id);
+  summary(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.accountService.getLiveSummary(user.id, id);
   }
 
   @Get(':id/positions')
-  positions(@Req() req: any, @Param('id') id: string) {
-    return this.accountService.getLivePositions(req.user.id, id);
+  positions(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.accountService.getLivePositions(user.id, id);
   }
 }

@@ -4,6 +4,7 @@ import { AccountService } from '../account/account.service.js';
 import { Trading212Service } from '../trading212/trading212.service.js';
 import { LlmService } from '../llm/llm.service.js';
 import type { Position } from '../trading212/trading212.types.js';
+import type { Prisma } from '@prisma/client';
 
 export interface Insight {
   title: string;
@@ -96,13 +97,13 @@ Return a JSON array with this exact format:
         await this.prisma.insightRecord.create({
           data: {
             accountId,
-            insights: insights as any,
+            insights: insights as unknown as Prisma.InputJsonValue,
           },
         });
       }
 
       return insights;
-    } catch (err) {
+    } catch {
       this.logger.error(`Failed to parse LLM insights: ${content}`);
       return [];
     }

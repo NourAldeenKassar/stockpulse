@@ -118,12 +118,9 @@ export class Trading212Service {
     let currentPath: string | null = `${path}?limit=50`;
 
     while (currentPath) {
-      const page = await this.request<PaginatedResponse<T>>(
-        apiKey,
-        apiSecret,
-        currentPath,
-        endpoint,
-      );
+      const page: PaginatedResponse<T> = await this.request<
+        PaginatedResponse<T>
+      >(apiKey, apiSecret, currentPath, endpoint);
       all.push(...page.items);
       currentPath = page.nextPagePath || null;
     }

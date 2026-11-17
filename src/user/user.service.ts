@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CryptoService } from '../crypto/crypto.service.js';
+import type { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -29,23 +30,19 @@ export class UserService {
     llmGatewayUrl?: string,
     llmGatewayKey?: string,
   ) {
-    const data: any = {};
+    const data: Prisma.UserUpdateInput = {};
 
     if (llmGatewayUrl !== undefined) {
       data.llmGatewayUrl = llmGatewayUrl || null;
     }
 
     if (llmGatewayKey !== undefined) {
-      if (llmGatewayKey) {
-        const encrypted = this.crypto.encrypt(llmGatewayKey);
-        data.llmGatewayKeyEncrypted = encrypted.ciphertext;
-        data.llmGatewayKeyIv = encrypted.iv;
-        data.llmGatewayKeyTag = encrypted.tag;
-      } else {
-        data.llmGatewayKeyEncrypted = null;
-        data.llmGatewayKeyIv = null;
-        data.llmGatewayKeyTag = null;
-      }
+      const encrypted = llmGatewayKey
+        ? this.crypto.encrypt(llmGatewayKey)
+        : null;
+      data.llmGatewayKeyEncrypted = encrypted?.ciphertext ?? null;
+      data.llmGatewayKeyIv = encrypted?.iv ?? null;
+      data.llmGatewayKeyTag = encrypted?.tag ?? null;
     }
 
     await this.prisma.user.update({
@@ -63,20 +60,13 @@ export class UserService {
       where: { id: userId },
     });
 
-    if (
-      !user.llmGatewayUrl ||
-      !user.llmGatewayKeyEncrypted ||
-      !user.llmGatewayKeyIv ||
-      !user.llmGatewayKeyTag
-    ) {
-      return null;
-    }
+    const key = this.crypto.tryDecryptField({
+      ciphertext: user.llmGatewayKeyEncrypted,
+      iv: user.llmGatewayKeyIv,
+      tag: user.llmGatewayKeyTag,
+    });
 
-    const key = this.crypto.decrypt(
-      user.llmGatewayKeyEncrypted,
-      user.llmGatewayKeyIv,
-      user.llmGatewayKeyTag,
-    );
+    if (!user.llmGatewayUrl || !key) return null;
 
     return { url: user.llmGatewayUrl, key };
   }

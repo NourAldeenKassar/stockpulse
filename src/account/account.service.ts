@@ -9,6 +9,9 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { CryptoService } from '../crypto/crypto.service.js';
 import { Trading212Service } from '../trading212/trading212.service.js';
 import { Trading212ApiError } from '../trading212/trading212.error.js';
+import { decryptAccountCredentials } from './account-credentials.js';
+import type { Trading212Credentials } from './account-credentials.js';
+import type { AccountSummary } from '../trading212/trading212.types.js';
 
 @Injectable()
 export class AccountService {
@@ -26,7 +29,7 @@ export class AccountService {
     apiSecret: string,
     label?: string,
   ) {
-    let summary;
+    let summary: AccountSummary;
     try {
       summary = await this.trading212.getAccountSummary(apiKey, apiSecret);
     } catch (err) {
@@ -143,19 +146,9 @@ export class AccountService {
   async decryptCredentials(
     userId: string,
     accountId: string,
-  ): Promise<{ apiKey: string; apiSecret: string }> {
+  ): Promise<Trading212Credentials> {
     const account = await this.getOwnAccount(userId, accountId);
-    const apiKey = this.crypto.decrypt(
-      account.apiKeyEncrypted,
-      account.encryptionIv,
-      account.encryptionTag,
-    );
-    const apiSecret = this.crypto.decrypt(
-      account.apiSecretEncrypted,
-      account.secretEncryptionIv,
-      account.secretEncryptionTag,
-    );
-    return { apiKey, apiSecret };
+    return decryptAccountCredentials(this.crypto, account);
   }
 
   private async getOwnAccount(userId: string, accountId: string) {
