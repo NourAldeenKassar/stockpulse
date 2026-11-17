@@ -26,19 +26,19 @@ export class SnapshotController {
     @Query('from') from?: string,
     @Query('to') to?: string,
   ) {
-    await this.accountService.decryptCredentials(req.user.id, accountId);
+    await this.accountService.assertOwnership(req.user.id, accountId);
     return this.snapshotService.getHistory(accountId, from, to);
   }
 
   @Get('latest')
   async latest(@Req() req: any, @Param('accountId') accountId: string) {
-    await this.accountService.decryptCredentials(req.user.id, accountId);
+    await this.accountService.assertOwnership(req.user.id, accountId);
     return this.snapshotService.getLatest(accountId);
   }
 
   @Post()
   async trigger(@Req() req: any, @Param('accountId') accountId: string) {
-    await this.accountService.decryptCredentials(req.user.id, accountId);
+    await this.accountService.assertOwnership(req.user.id, accountId);
     await this.snapshotService.takeSnapshot(accountId);
     return { ok: true };
   }

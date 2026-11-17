@@ -13,7 +13,7 @@ export class InsightController {
 
   @Get()
   async getLatest(@Req() req: any, @Param('accountId') accountId: string) {
-    await this.accountService.decryptCredentials(req.user.id, accountId);
+    await this.accountService.assertOwnership(req.user.id, accountId);
     return this.insightService.getLatest(accountId);
   }
 
