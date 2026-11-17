@@ -1,3 +1,13 @@
+// AccountSummary and Position are the Trading212 API shapes. They are
+// re-exported from the backend definition rather than mirrored here, so the two
+// cannot drift. The import is type-only and erases at compile time.
+import type {
+  AccountSummary,
+  Position,
+} from '@shared/trading212/trading212.types';
+
+export type { AccountSummary, Position };
+
 export interface User {
   id: string;
   email: string;
@@ -10,45 +20,6 @@ export interface TradingAccount {
   lastSnapshotAt: string | null;
   active: boolean;
   createdAt: string;
-}
-
-export interface AccountSummary {
-  id: number;
-  currency: string;
-  totalValue: number;
-  cash: {
-    availableToTrade: number;
-    reservedForOrders: number;
-    inPies: number;
-  };
-  investments: {
-    currentValue: number;
-    totalCost: number;
-    realizedProfitLoss: number;
-    unrealizedProfitLoss: number;
-  };
-}
-
-export interface Position {
-  instrument: {
-    ticker: string;
-    name: string;
-    isin: string;
-    currency: string;
-  };
-  createdAt: string;
-  quantity: number;
-  quantityAvailableForTrading: number;
-  quantityInPies: number;
-  currentPrice: number;
-  averagePricePaid: number;
-  walletImpact: {
-    currency: string;
-    totalCost: number;
-    currentValue: number;
-    unrealizedProfitLoss: number;
-    fxImpact: number | null;
-  };
 }
 
 export interface Snapshot {
@@ -65,4 +36,16 @@ export interface Snapshot {
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+}
+
+export interface LlmSettings {
+  llmGatewayUrl: string;
+  hasLlmKey: boolean;
+}
+
+export interface Insight {
+  title: string;
+  body: string;
+  type: 'warning' | 'info' | 'suggestion';
+  severity: 'low' | 'medium' | 'high';
 }

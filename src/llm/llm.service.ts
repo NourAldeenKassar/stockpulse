@@ -1,5 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { UserService } from '../user/user.service.js';
+import type { LlmPrompt } from './llm.types.js';
+
+export interface LlmOptions {
+  /**
+   * false lets the gateway route to paid providers. The gateway has no notion
+   * of cheap and expensive keys: this flag is what picks the tier.
+   */
+  freeOnly: boolean;
+  temperature?: number;
+  maxTokens?: number;
+}
+
+export interface LlmResult {
+  text: string;
+  provider: string;
+  model: string;
+}
 
 @Injectable()
 export class LlmService {
@@ -9,9 +26,9 @@ export class LlmService {
 
   async generate(
     userId: string,
-    systemPrompt: string,
-    userPrompt: string,
-  ): Promise<string | null> {
+    prompt: LlmPrompt,
+    options: LlmOptions,
+  ): Promise<LlmResult | null> {
     const creds = await this.userService.decryptLlmKey(userId);
     if (!creds) {
       this.logger.warn('LLM Gateway not configured for user');
@@ -25,9 +42,15 @@ export class LlmService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        system: systemPrompt,
-        prompt: userPrompt,
-        freeOnly: true,
+        system: prompt.system,
+        prompt: prompt.user,
+        freeOnly: options.freeOnly,
+        ...(options.temperature !== undefined && {
+          temperature: options.temperature,
+        }),
+        ...(options.maxTokens !== undefined && {
+          maxTokens: options.maxTokens,
+        }),
       }),
     });
 
@@ -37,7 +60,11 @@ export class LlmService {
       throw new Error(`LLM Gateway error: ${response.status}`);
     }
 
-    const data = (await response.json()) as { text: string };
-    return data.text;
+    const data = (await response.json()) as Partial<LlmResult>;
+    return {
+      text: data.text ?? '',
+      provider: data.provider ?? 'unknown',
+      model: data.model ?? 'unknown',
+    };
   }
 }
