@@ -55,11 +55,7 @@ export class SnapshotService {
     this.logger.log(`Snapshot taken for account ${account.id}`);
   }
 
-  async getHistory(
-    accountId: string,
-    from?: string,
-    to?: string,
-  ) {
+  async getHistory(accountId: string, from?: string, to?: string) {
     const where: any = { accountId };
 
     if (from || to) {

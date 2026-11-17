@@ -27,9 +27,7 @@ export class SnapshotCron {
       try {
         await this.snapshotService.takeSnapshot(account.id);
       } catch (err) {
-        this.logger.error(
-          `Snapshot failed for account ${account.id}: ${err}`,
-        );
+        this.logger.error(`Snapshot failed for account ${account.id}: ${err}`);
       }
     }
   }

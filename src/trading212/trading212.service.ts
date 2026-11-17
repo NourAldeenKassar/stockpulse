@@ -137,14 +137,18 @@ export class Trading212Service {
         `T212 ${res.status} on ${path}, retrying in ${delay}ms (attempt ${attempt})`,
       );
       await new Promise((r) => setTimeout(r, delay));
-      return this.request<T>(apiKey, apiSecret, path, rateLimitKey, attempt + 1);
+      return this.request<T>(
+        apiKey,
+        apiSecret,
+        path,
+        rateLimitKey,
+        attempt + 1,
+      );
     }
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      this.logger.error(
-        `T212 API ${res.status} on ${path}: ${body}`,
-      );
+      this.logger.error(`T212 API ${res.status} on ${path}: ${body}`);
       throw new Error(`Trading212 API error ${res.status}: ${body}`);
     }
 

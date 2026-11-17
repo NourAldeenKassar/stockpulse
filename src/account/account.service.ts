@@ -35,9 +35,7 @@ export class AccountService {
           'Invalid credentials — Trading212 rejected the API key/secret',
         );
       }
-      throw new BadRequestException(
-        `Could not connect to Trading212: ${msg}`,
-      );
+      throw new BadRequestException(`Could not connect to Trading212: ${msg}`);
     }
 
     if (summary.totalValue === undefined) {
