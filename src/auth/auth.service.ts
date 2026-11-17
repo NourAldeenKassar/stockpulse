@@ -2,7 +2,6 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
-  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcrypt';
@@ -34,13 +33,6 @@ export class AuthService {
   }
 
   async register(email: string, password: string) {
-    if (!email || !email.includes('@')) {
-      throw new BadRequestException('Valid email is required');
-    }
-    if (!password || password.length < 6) {
-      throw new BadRequestException('Password must be at least 6 characters');
-    }
-
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new ConflictException('Email already registered');

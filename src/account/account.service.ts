@@ -93,7 +93,12 @@ export class AccountService {
     const account = await this.getOwnAccount(userId, accountId);
     return this.prisma.tradingAccount.update({
       where: { id: account.id },
-      data,
+      data: {
+        ...(data.label !== undefined && { label: data.label }),
+        ...(data.snapshotIntervalMin !== undefined && {
+          snapshotIntervalMin: data.snapshotIntervalMin,
+        }),
+      },
       select: {
         id: true,
         label: true,
