@@ -5,3 +5,4 @@ dist
 frontend/.next
 /generated/prisma
 *.tsbuildinfo
+frontend/AGENTS.md
