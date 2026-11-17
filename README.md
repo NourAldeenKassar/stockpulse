@@ -25,6 +25,19 @@ A self-hosted, AI-powered portfolio tracker for [Trading 212](https://www.tradin
 
 ![Allocation & Positions](docs/T3.png)
 
+**Per-Stock Analysis**
+- Click any holding to open its own page
+- Real analyst recommendation counts from Finnhub, shown with their source and
+  fetch time, plus how the ratings moved over recent months
+- An AI reading of those numbers against *your* position: cost basis, size and
+  share of the portfolio. Presented separately from the data, labelled with the
+  model that wrote it
+- Only this analysis uses the paid tier of the LLM Gateway (`freeOnly: false`);
+  portfolio insights stay on the free tier. Results are cached per holding so
+  reopening a stock does not re-bill a paid provider
+- Non-US listings often cannot be matched to a market-data symbol. When that
+  happens no analyst figures are shown rather than guessed ones
+
 **What-If Simulator**
 - Select any position, drag the price change slider (-50% to +50%)
 - Instantly see the impact on position value and total portfolio
@@ -109,8 +122,12 @@ This starts PostgreSQL and the app on port `3000`.
 | `JWT_REFRESH_SECRET` | Yes | Secret for refresh token signing |
 | `ENCRYPTION_KEY` | Yes | 64-char hex string for AES-256 encryption |
 | `TRADING212_BASE_URL` | No | Defaults to `https://live.trading212.com` |
+| `FRONTEND_ORIGIN` | No | Allowed CORS origin, defaults to `http://localhost:3001`. Comma-separate for several. |
 
-AI insights are configured per-user in the Settings UI (not via environment variables).
+Secrets must be at least 32 characters, and the two JWT secrets must differ.
+
+AI and market data keys are configured per-user in the Settings UI, not via
+environment variables.
 
 ## Project Structure
 
