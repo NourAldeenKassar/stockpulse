@@ -92,12 +92,12 @@ export default function PortfolioChart({
     <div className="glass-card rounded-xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="font-heading text-lg font-semibold">Portfolio Value</h2>
-        <div className="flex gap-1 rounded-lg bg-bg-card p-1">
+        <div className="flex flex-wrap gap-1 rounded-lg bg-bg-card p-1">
           {RANGES.map((r) => (
             <button
               key={r.label}
               onClick={() => setRange(r.label)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 ${
                 range === r.label
                   ? 'bg-cyan/15 text-cyan'
                   : 'text-text-muted hover:text-text-secondary'

@@ -63,12 +63,10 @@ export class FinnhubService {
   }
 
   /**
-   * Maps a Trading212 ticker onto a Finnhub symbol.
+   * Maps a Trading212 holding onto a Finnhub symbol, preferring the ISIN.
    *
-   * US listings map directly. Everything else is confirmed against the ISIN,
-   * because a bare base symbol does not identify a non-US listing and would
-   * quietly return another company's ratings. Returns null when it cannot be
-   * resolved, and the caller must then show no consensus at all.
+   * Returns null when it cannot be resolved, and the caller must then show no
+   * market data rather than data for something else.
    */
   async resolveSymbol(
     apiKey: string,
@@ -89,9 +87,10 @@ export class FinnhubService {
     ticker: string,
     isin: string | null,
   ): Promise<string | null> {
-    const candidate = parseTrading212Ticker(ticker);
-    if (candidate?.confident) return candidate.symbol;
-
+    // The ISIN uniquely identifies the security; the ticker does not. A US
+    // Trading212 ticker is not always the market-data symbol — CAPA_US_EQ is
+    // Quantum-Si, which Finnhub knows as QSI — so trusting the ticker can
+    // query an unrelated company. Resolve by ISIN whenever one is available.
     if (isin) {
       const search = await this.request<SymbolSearchResult>(apiKey, '/search', {
         q: isin,
@@ -109,6 +108,11 @@ export class FinnhubService {
         return base ?? hit.symbol;
       }
     }
+
+    // No ISIN to go on. A US ticker usually maps straight across, so it is
+    // better than nothing, but it is explicitly unverified.
+    const candidate = parseTrading212Ticker(ticker);
+    if (candidate?.confident) return candidate.symbol;
 
     this.logger.log(
       `No confident symbol for ${ticker}; consensus will be omitted`,

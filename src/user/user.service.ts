@@ -10,24 +10,46 @@ export class UserService {
     private crypto: CryptoService,
   ) {}
 
+  /**
+   * The last few characters of a key, so a user can tell which key is stored
+   * without it ever being sent in full. Derived by decrypting server-side, so
+   * nothing extra is persisted.
+   */
+  private hint(key: string | null): string | null {
+    if (!key) return null;
+    return key.length <= 4 ? '••••' : `••••${key.slice(-4)}`;
+  }
+
   async getLlmSettings(userId: string) {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
-      select: {
-        llmGatewayUrl: true,
-        llmGatewayKeyEncrypted: true,
-        llmPremiumGatewayUrl: true,
-        llmPremiumKeyEncrypted: true,
-        finnhubKeyEncrypted: true,
-      },
+    });
+
+    const llmKey = this.crypto.tryDecryptField({
+      ciphertext: user.llmGatewayKeyEncrypted,
+      iv: user.llmGatewayKeyIv,
+      tag: user.llmGatewayKeyTag,
+    });
+    const premiumKey = this.crypto.tryDecryptField({
+      ciphertext: user.llmPremiumKeyEncrypted,
+      iv: user.llmPremiumKeyIv,
+      tag: user.llmPremiumKeyTag,
+    });
+    const finnhubKey = this.crypto.tryDecryptField({
+      ciphertext: user.finnhubKeyEncrypted,
+      iv: user.finnhubKeyIv,
+      tag: user.finnhubKeyTag,
     });
 
     return {
       llmGatewayUrl: user.llmGatewayUrl || '',
-      hasLlmKey: !!user.llmGatewayKeyEncrypted,
+      hasLlmKey: !!llmKey,
+      llmKeyHint: this.hint(llmKey),
       llmPremiumGatewayUrl: user.llmPremiumGatewayUrl || '',
-      hasPremiumKey: !!user.llmPremiumKeyEncrypted,
-      hasFinnhubKey: !!user.finnhubKeyEncrypted,
+      hasPremiumKey: !!premiumKey,
+      premiumKeyHint: this.hint(premiumKey),
+      hasFinnhubKey: !!finnhubKey,
+      finnhubKeyHint: this.hint(finnhubKey),
     };
   }
 

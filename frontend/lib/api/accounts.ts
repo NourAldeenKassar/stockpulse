@@ -1,5 +1,10 @@
 import { request } from '../http';
-import type { AccountSummary, Position, TradingAccount } from '../types';
+import type {
+  AccountSummary,
+  MarketOverview,
+  Position,
+  TradingAccount,
+} from '../types';
 
 export function connectAccount(
   apiKey: string,
@@ -36,4 +41,11 @@ export function getAccountSummary(accountId: string): Promise<AccountSummary> {
 
 export function getAccountPositions(accountId: string): Promise<Position[]> {
   return request(`/accounts/${accountId}/positions`);
+}
+
+/** Portfolio-wide analyst sentiment, news and earnings. Free, no LLM call. */
+export function getMarketOverview(
+  accountId: string,
+): Promise<MarketOverview | null> {
+  return request(`/accounts/${accountId}/market-overview`);
 }

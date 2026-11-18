@@ -33,6 +33,7 @@ export default function DashboardPage() {
     positions,
     snapshots,
     llmSettings,
+    overview,
     loading,
     error,
     asOf,
@@ -56,9 +57,18 @@ export default function DashboardPage() {
         snapshots,
         selectedAccount,
         llmSettings,
+        overview,
         asOf,
       }),
-    [summary, positions, snapshots, selectedAccount, llmSettings, asOf],
+    [
+      summary,
+      positions,
+      snapshots,
+      selectedAccount,
+      llmSettings,
+      overview,
+      asOf,
+    ],
   );
 
   function handleDragEnd(event: DragEndEvent) {

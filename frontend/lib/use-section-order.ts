@@ -10,6 +10,9 @@ export const DEFAULT_ORDER = [
   'heatmap',
   'chart',
   'allocation-row',
+  'sentiment',
+  'earnings',
+  'news',
   'simulator',
   'positions',
 ];
@@ -21,6 +24,9 @@ export const SECTION_LABELS: Record<string, string> = {
   heatmap: 'Heatmap',
   chart: 'Portfolio Chart',
   'allocation-row': 'Allocation / Currency / Movers',
+  sentiment: 'Analyst Sentiment',
+  earnings: 'Earnings',
+  news: 'News',
   simulator: 'What-If Simulator',
   positions: 'Positions Table',
 };

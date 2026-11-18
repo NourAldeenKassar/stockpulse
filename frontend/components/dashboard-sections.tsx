@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import type {
   AccountSummary,
   LlmSettings,
+  MarketOverview,
   Position,
   Snapshot,
 } from '@/lib/types';
@@ -18,6 +19,9 @@ import CurrencyExposure from '@/components/currency-exposure';
 import TopMovers from '@/components/top-movers';
 import WhatIfSimulator from '@/components/what-if-simulator';
 import PositionsTable from '@/components/positions-table';
+import PortfolioSentiment from '@/components/portfolio-sentiment';
+import PortfolioNews from '@/components/portfolio-news';
+import PortfolioEarnings from '@/components/portfolio-earnings';
 
 export interface SectionContext {
   summary: AccountSummary | null;
@@ -25,6 +29,7 @@ export interface SectionContext {
   snapshots: Snapshot[];
   selectedAccount: string;
   llmSettings: LlmSettings | null;
+  overview: MarketOverview | null;
   asOf: number;
 }
 
@@ -33,8 +38,15 @@ export interface SectionContext {
  * show. The page only decides the order; what each section is lives here.
  */
 export function buildSections(ctx: SectionContext): Record<string, ReactNode> {
-  const { summary, positions, snapshots, selectedAccount, llmSettings, asOf } =
-    ctx;
+  const {
+    summary,
+    positions,
+    snapshots,
+    selectedAccount,
+    llmSettings,
+    overview,
+    asOf,
+  } = ctx;
   const hasPositions = positions.length > 0;
 
   return {
@@ -71,6 +83,18 @@ export function buildSections(ctx: SectionContext): Record<string, ReactNode> {
           <TopMovers positions={positions} />
         </div>
       </div>
+    ) : null,
+
+    sentiment: overview ? (
+      <PortfolioSentiment overview={overview} accountId={selectedAccount} />
+    ) : null,
+
+    earnings: overview ? (
+      <PortfolioEarnings overview={overview} accountId={selectedAccount} />
+    ) : null,
+
+    news: overview ? (
+      <PortfolioNews overview={overview} accountId={selectedAccount} />
     ) : null,
 
     simulator: hasPositions ? <WhatIfSimulator positions={positions} /> : null,

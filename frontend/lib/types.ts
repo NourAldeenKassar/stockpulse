@@ -41,9 +41,12 @@ export interface AuthTokens {
 export interface LlmSettings {
   llmGatewayUrl: string;
   hasLlmKey: boolean;
+  llmKeyHint: string | null;
   llmPremiumGatewayUrl: string;
   hasPremiumKey: boolean;
+  premiumKeyHint: string | null;
   hasFinnhubKey: boolean;
+  finnhubKeyHint: string | null;
 }
 
 export interface Insight {
@@ -130,4 +133,38 @@ export interface StockAnalysis {
   provider: string | null;
   model: string | null;
   generatedAt: string | null;
+}
+
+export interface ConsensusTally {
+  strongBuy: number;
+  buy: number;
+  hold: number;
+  sell: number;
+  strongSell: number;
+  total: number;
+}
+
+export interface HoldingOverview {
+  ticker: string;
+  name: string;
+  symbol: string | null;
+  value: number;
+  weight: number;
+  pplPercent: number;
+  consensus: ConsensusTally | null;
+  latestEarnings: EarningsItem | null;
+}
+
+export interface PortfolioNewsItem extends NewsItem {
+  ticker: string;
+  name: string;
+}
+
+export interface MarketOverview {
+  holdings: HoldingOverview[];
+  sentiment: ConsensusTally | null;
+  news: PortfolioNewsItem[];
+  covered: number;
+  total: number;
+  fetchedAt: string;
 }

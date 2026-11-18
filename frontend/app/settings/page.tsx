@@ -5,7 +5,8 @@ import * as api from '@/lib/api';
 import type { TradingAccount } from '@/lib/types';
 import type { LlmSettings } from '@/lib/api';
 import AccountConnectForm from '@/components/account-connect-form';
-import { LocalTime, Spinner } from '@/components/ui';
+import CredentialsCard from '@/components/credentials-card';
+import { Card, LocalTime, SectionHeading, Spinner } from '@/components/ui';
 
 const INTERVAL_OPTIONS = [
   { value: 60, label: 'Every hour' },
@@ -23,13 +24,6 @@ export default function SettingsPage() {
     null,
   );
   const [llmSettings, setLlmSettings] = useState<LlmSettings | null>(null);
-  const [llmUrl, setLlmUrl] = useState('');
-  const [llmKey, setLlmKey] = useState('');
-  const [finnhubKey, setFinnhubKey] = useState('');
-  const [premiumUrl, setPremiumUrl] = useState('');
-  const [premiumKey, setPremiumKey] = useState('');
-  const [llmSaving, setLlmSaving] = useState(false);
-  const [llmSuccess, setLlmSuccess] = useState(false);
 
   const loadAccounts = useCallback(async () => {
     try {
@@ -44,8 +38,6 @@ export default function SettingsPage() {
     try {
       const settings = await api.getLlmSettings();
       setLlmSettings(settings);
-      setLlmUrl(settings.llmGatewayUrl);
-      setPremiumUrl(settings.llmPremiumGatewayUrl);
     } catch {
       // ignore
     }
@@ -84,51 +76,6 @@ export default function SettingsPage() {
   async function handleTriggerSnapshot(id: string) {
     await api.triggerSnapshot(id);
     await loadAccounts();
-  }
-
-  async function handleSaveLlm(e: React.FormEvent) {
-    e.preventDefault();
-    setLlmSaving(true);
-    setLlmSuccess(false);
-    try {
-      const data: {
-        llmGatewayUrl?: string;
-        llmGatewayKey?: string;
-        finnhubKey?: string;
-        llmPremiumGatewayUrl?: string;
-        llmPremiumKey?: string;
-      } = {
-        llmGatewayUrl: llmUrl,
-        llmPremiumGatewayUrl: premiumUrl,
-      };
-      if (llmKey) data.llmGatewayKey = llmKey;
-      if (finnhubKey) data.finnhubKey = finnhubKey;
-      if (premiumKey) data.llmPremiumKey = premiumKey;
-      const updated = await api.updateLlmSettings(data);
-      setLlmSettings(updated);
-      setLlmKey('');
-      setFinnhubKey('');
-      setPremiumKey('');
-      setLlmSuccess(true);
-      setTimeout(() => setLlmSuccess(false), 3000);
-    } finally {
-      setLlmSaving(false);
-    }
-  }
-
-  async function handleDisableLlm() {
-    setLlmSaving(true);
-    try {
-      const updated = await api.updateLlmSettings({
-        llmGatewayUrl: '',
-        llmGatewayKey: '',
-      });
-      setLlmSettings(updated);
-      setLlmUrl('');
-      setLlmKey('');
-    } finally {
-      setLlmSaving(false);
-    }
   }
 
   if (loading) {
@@ -251,167 +198,12 @@ export default function SettingsPage() {
         )}
       </div>
 
-      <div className="glass-card rounded-xl p-6">
-        <h2 className="mb-4 font-heading text-lg font-semibold">Add Account</h2>
+      <Card>
+        <SectionHeading>Add account</SectionHeading>
         <AccountConnectForm onConnected={loadAccounts} />
-      </div>
+      </Card>
 
-      <div className="glass-card rounded-xl p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="font-heading text-lg font-semibold">AI Insights</h2>
-            <p className="mt-1 text-sm text-text-secondary">
-              Connect your LLM Gateway for portfolio insights, and optionally
-              Finnhub for real analyst data on individual holdings.
-            </p>
-          </div>
-          {llmSettings?.hasLlmKey && (
-            <span className="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald ring-1 ring-emerald/20">
-              Enabled
-            </span>
-          )}
-        </div>
-
-        <form onSubmit={handleSaveLlm} className="space-y-4">
-          {llmSuccess && (
-            <div className="rounded-lg bg-emerald-glow border border-emerald/20 px-4 py-3 text-sm text-emerald">
-              LLM Gateway settings saved
-            </div>
-          )}
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              Gateway URL
-            </label>
-            <input
-              type="text"
-              value={llmUrl}
-              onChange={(e) => setLlmUrl(e.target.value)}
-              className="w-full rounded-lg px-4 py-3 text-sm font-mono"
-              placeholder="e.g. http://your-gateway:3005"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              API Key{' '}
-              {llmSettings?.hasLlmKey && (
-                <span className="text-text-muted">
-                  (already set, leave empty to keep)
-                </span>
-              )}
-            </label>
-            <input
-              type="password"
-              value={llmKey}
-              onChange={(e) => setLlmKey(e.target.value)}
-              className="w-full rounded-lg px-4 py-3 text-sm font-mono"
-              placeholder={
-                llmSettings?.hasLlmKey
-                  ? 'Leave empty to keep current key'
-                  : 'Your LLM Gateway API key'
-              }
-            />
-          </div>
-
-          <div className="border-t border-border pt-4">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-semibold">Smarter model (per-stock)</p>
-              {llmSettings?.hasPremiumKey && (
-                <span className="rounded-full bg-violet/10 px-3 py-1 text-xs font-semibold text-violet ring-1 ring-violet/20">
-                  Enabled
-                </span>
-              )}
-            </div>
-            <p className="mb-3 text-xs text-text-muted">
-              Optional. Per-stock analysis is the only thing that uses paid
-              providers. Pointing it at its own gateway key keeps that spend
-              separate in your gateway dashboard, and lets you revoke it without
-              breaking the free portfolio insights. Leave empty to reuse the
-              gateway above.
-            </p>
-
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              Premium Gateway URL
-            </label>
-            <input
-              type="text"
-              value={premiumUrl}
-              onChange={(e) => setPremiumUrl(e.target.value)}
-              className="mb-3 w-full rounded-lg px-4 py-3 text-sm font-mono"
-              placeholder="e.g. http://your-gateway:3000"
-            />
-
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              Premium API Key{' '}
-              {llmSettings?.hasPremiumKey && (
-                <span className="text-text-muted">
-                  (already set, leave empty to keep)
-                </span>
-              )}
-            </label>
-            <input
-              type="password"
-              value={premiumKey}
-              onChange={(e) => setPremiumKey(e.target.value)}
-              className="w-full rounded-lg px-4 py-3 text-sm font-mono"
-              placeholder={
-                llmSettings?.hasPremiumKey
-                  ? 'Leave empty to keep current key'
-                  : 'Gateway key for paid providers'
-              }
-            />
-          </div>
-
-          <div className="border-t border-border pt-4">
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              Finnhub API Key{' '}
-              {llmSettings?.hasFinnhubKey && (
-                <span className="text-text-muted">
-                  (already set, leave empty to keep)
-                </span>
-              )}
-            </label>
-            <input
-              type="password"
-              value={finnhubKey}
-              onChange={(e) => setFinnhubKey(e.target.value)}
-              className="w-full rounded-lg px-4 py-3 text-sm font-mono"
-              placeholder={
-                llmSettings?.hasFinnhubKey
-                  ? 'Leave empty to keep current key'
-                  : 'Your Finnhub API key'
-              }
-            />
-            <p className="mt-1.5 text-xs text-text-muted">
-              Optional. Supplies real analyst recommendation counts for
-              per-stock analysis. Without it the AI works from your position
-              data alone and no analyst figures are shown.
-            </p>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={llmSaving || !llmUrl}
-              className="rounded-lg bg-gradient-to-r from-cyan to-blue-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan/30 disabled:opacity-50 disabled:hover:translate-y-0"
-            >
-              {llmSaving ? 'Saving...' : 'Save'}
-            </button>
-
-            {llmSettings?.hasLlmKey && (
-              <button
-                type="button"
-                onClick={() => void handleDisableLlm()}
-                disabled={llmSaving}
-                className="rounded-lg px-6 py-2.5 text-sm font-medium text-rose/60 transition-colors hover:bg-rose-glow hover:text-rose"
-              >
-                Disable AI Insights
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
+      <CredentialsCard settings={llmSettings} onSaved={setLlmSettings} />
     </div>
   );
 }

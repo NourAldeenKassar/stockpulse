@@ -5,6 +5,7 @@ import * as api from '@/lib/api';
 import type {
   AccountSummary,
   LlmSettings,
+  MarketOverview,
   Position,
   Snapshot,
   TradingAccount,
@@ -20,6 +21,9 @@ export interface DashboardData {
   positions: Position[];
   snapshots: Snapshot[];
   llmSettings: LlmSettings | null;
+  /** Free Finnhub data across all holdings. Null until loaded, or with no key. */
+  overview: MarketOverview | null;
+  overviewLoading: boolean;
   loading: boolean;
   error: string;
   /**
@@ -37,6 +41,12 @@ export function useDashboardData(): DashboardData {
   const [positions, setPositions] = useState<Position[]>([]);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [llmSettings, setLlmSettings] = useState<LlmSettings | null>(null);
+  // Stored with the account it belongs to, so "still loading" is derived
+  // rather than tracked in a second piece of state that an effect must set.
+  const [overviewFor, setOverviewFor] = useState<{
+    account: string;
+    data: MarketOverview | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [asOf, setAsOf] = useState(0);
@@ -118,6 +128,26 @@ export function useDashboardData(): DashboardData {
 
   useEffect(() => {
     if (!selectedAccount) return;
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const data = await api.getMarketOverview(selectedAccount);
+        if (!cancelled) setOverviewFor({ account: selectedAccount, data });
+      } catch {
+        // The dashboard works without market data.
+        if (!cancelled)
+          setOverviewFor({ account: selectedAccount, data: null });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedAccount]);
+
+  useEffect(() => {
+    if (!selectedAccount) return;
 
     const id = ++requestId.current;
     void loadAll(selectedAccount, id);
@@ -129,6 +159,8 @@ export function useDashboardData(): DashboardData {
     return () => clearInterval(interval);
   }, [selectedAccount, loadAll, refreshLive]);
 
+  const overviewReady = overviewFor?.account === selectedAccount;
+
   return {
     accounts,
     selectedAccount,
@@ -137,6 +169,8 @@ export function useDashboardData(): DashboardData {
     positions,
     snapshots,
     llmSettings,
+    overview: overviewReady ? (overviewFor?.data ?? null) : null,
+    overviewLoading: Boolean(selectedAccount) && !overviewReady,
     loading,
     error,
     asOf,

@@ -20,8 +20,11 @@ export default function Navbar() {
       className="sticky top-0 z-50 border-b border-border backdrop-blur-xl"
       style={{ background: 'rgba(10, 10, 26, 0.8)' }}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <Link href="/dashboard" className="flex items-center gap-2">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6">
+        <Link
+          href="/dashboard"
+          className="flex min-w-0 shrink items-center gap-2"
+        >
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan to-blue-500">
             <svg
               width="16"
@@ -37,19 +40,19 @@ export default function Navbar() {
               <polyline points="16,7 22,7 22,13" />
             </svg>
           </div>
-          <span className="font-heading text-lg font-semibold tracking-tight">
+          <span className="hidden font-heading text-lg font-semibold tracking-tight xs:inline sm:inline">
             Stock<span className="text-cyan">Pulse</span>
           </span>
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           {navLinks.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:px-4 ${
                   active
                     ? 'bg-cyan/10 text-cyan'
                     : 'text-text-secondary hover:bg-bg-card-hover hover:text-text-primary'
@@ -61,7 +64,7 @@ export default function Navbar() {
           })}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           <button
             onClick={toggle}
             className="rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-card-hover hover:text-text-primary"
@@ -98,7 +101,9 @@ export default function Navbar() {
               </svg>
             )}
           </button>
-          <span className="text-sm text-text-muted">{user?.email}</span>
+          <span className="hidden max-w-[12rem] truncate text-sm text-text-muted lg:inline">
+            {user?.email}
+          </span>
           <button
             onClick={logout}
             className="rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-rose-glow hover:text-rose"

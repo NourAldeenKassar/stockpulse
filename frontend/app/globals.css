@@ -28,6 +28,8 @@
 }
 
 html {
+  /* A single over-wide child should not make the whole page pan sideways. */
+  overflow-x: hidden;
   background-color: var(--color-bg);
   color: var(--color-text-primary);
   font-family: var(--font-body);

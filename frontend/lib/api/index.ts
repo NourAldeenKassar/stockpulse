@@ -15,4 +15,8 @@ export type {
   Fundamentals,
   NewsItem,
   EarningsItem,
+  MarketOverview,
+  HoldingOverview,
+  PortfolioNewsItem,
+  ConsensusTally,
 } from '../types';
