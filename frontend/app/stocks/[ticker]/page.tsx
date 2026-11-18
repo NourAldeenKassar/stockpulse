@@ -234,6 +234,7 @@ export default function StockPage() {
         <StockFundamentals
           fundamentals={market.fundamentals}
           currentPrice={position.currentPrice}
+          priceCurrency={position.instrument.currency}
         />
       )}
 

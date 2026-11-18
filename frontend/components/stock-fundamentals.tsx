@@ -28,14 +28,25 @@ function Metric({ label, value }: { label: string; value: string }) {
 export default function StockFundamentals({
   fundamentals,
   currentPrice,
+  priceCurrency,
 }: {
   fundamentals: Fundamentals;
   currentPrice: number;
+  /** Currency of currentPrice, from Trading212. */
+  priceCurrency: string;
 }) {
   const { week52High: high, week52Low: low } = fundamentals;
-  // Where the current price sits in the 52-week band.
+
+  // Trading212 quotes the position in its own listing's currency while these
+  // figures come from Finnhub's listing. Plotting one against the other when
+  // they disagree would put the marker somewhere confidently wrong, so the
+  // range is shown as plain numbers unless the currencies match.
+  const comparable =
+    fundamentals.currency !== null &&
+    fundamentals.currency.toUpperCase() === priceCurrency.toUpperCase();
+
   const position =
-    high !== null && low !== null && high > low
+    comparable && high !== null && low !== null && high > low
       ? Math.min(100, Math.max(0, ((currentPrice - low) / (high - low)) * 100))
       : null;
 
@@ -65,6 +76,18 @@ export default function StockFundamentals({
           value={fmt(fundamentals.returnOnEquity, '%', 1)}
         />
       </div>
+
+      {position === null && high !== null && low !== null && (
+        <div className="mt-6 flex items-center justify-between text-xs text-text-muted">
+          <span>52-week low {fmt(low)}</span>
+          <span>
+            {fundamentals.currency && fundamentals.currency !== priceCurrency
+              ? `quoted in ${fundamentals.currency}, your position in ${priceCurrency}`
+              : ''}
+          </span>
+          <span>52-week high {fmt(high)}</span>
+        </div>
+      )}
 
       {position !== null && (
         <div className="mt-6">

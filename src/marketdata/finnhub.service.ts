@@ -157,6 +157,7 @@ export class FinnhubService {
   private async getFundamentals(
     apiKey: string,
     symbol: string,
+    currency: string | null,
   ): Promise<Fundamentals | null> {
     const res = await this.request<{ metric?: Record<string, unknown> }>(
       apiKey,
@@ -167,6 +168,7 @@ export class FinnhubService {
     if (!m) return null;
 
     const f: Fundamentals = {
+      currency,
       peRatio: num(m['peTTM']) ?? num(m['peBasicExclExtraTTM']),
       pbRatio: num(m['pbQuarterly']) ?? num(m['pbAnnual']),
       beta: num(m['beta']),
@@ -179,9 +181,12 @@ export class FinnhubService {
       marketCap: num(m['marketCapitalization']),
     };
 
-    // Every field empty means no usable coverage; show nothing rather than a
-    // card full of dashes.
-    return Object.values(f).some((v) => v !== null) ? f : null;
+    // Every figure empty means no usable coverage; show nothing rather than a
+    // card full of dashes. Currency alone does not count as coverage.
+    const hasFigures = Object.entries(f).some(
+      ([key, value]) => key !== 'currency' && value !== null,
+    );
+    return hasFigures ? f : null;
   }
 
   private async getNews(apiKey: string, symbol: string): Promise<NewsItem[]> {
@@ -276,9 +281,15 @@ export class FinnhubService {
       return empty;
     }
 
+    const profile = await this.request<CompanyProfile>(
+      apiKey,
+      '/stock/profile2',
+      { symbol },
+    );
+
     const [consensus, fundamentals, news, earnings, peers] = await Promise.all([
       this.getConsensus(apiKey, ticker, isin),
-      this.getFundamentals(apiKey, symbol),
+      this.getFundamentals(apiKey, symbol, profile?.currency || null),
       this.getNews(apiKey, symbol),
       this.getEarnings(apiKey, symbol),
       this.getPeers(apiKey, symbol),

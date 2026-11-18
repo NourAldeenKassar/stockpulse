@@ -39,6 +39,8 @@ export interface AnalystConsensus {
 
 /** Selected fields from Finnhub's Basic Financials. All optional: coverage varies. */
 export interface Fundamentals {
+  /** Currency the price-based figures are quoted in, from the company profile. */
+  currency: string | null;
   peRatio: number | null;
   pbRatio: number | null;
   beta: number | null;

@@ -83,6 +83,7 @@ export interface StockNarrative {
 }
 
 export interface Fundamentals {
+  currency: string | null;
   peRatio: number | null;
   pbRatio: number | null;
   beta: number | null;
