@@ -9,6 +9,10 @@ export type {
   Insight,
   LlmSettings,
   StockAnalysis,
+  StockMarketData,
   AnalystConsensus,
   StockNarrative,
+  Fundamentals,
+  NewsItem,
+  EarningsItem,
 } from '../types';

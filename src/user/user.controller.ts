@@ -25,6 +25,8 @@ export class UserController {
       dto.llmGatewayUrl,
       dto.llmGatewayKey,
       dto.finnhubKey,
+      dto.llmPremiumGatewayUrl,
+      dto.llmPremiumKey,
     );
   }
 }

@@ -17,6 +17,13 @@ model User {
   finnhubKeyEncrypted     String?
   finnhubKeyIv            String?
   finnhubKeyTag           String?
+  /// Optional second gateway for the paid tier used by per-stock analysis.
+  /// Kept separate from the cheap one so its usage and cost can be tracked and
+  /// revoked independently.
+  llmPremiumGatewayUrl    String?
+  llmPremiumKeyEncrypted  String?
+  llmPremiumKeyIv         String?
+  llmPremiumKeyTag        String?
   createdAt               DateTime         @default(now())
   accounts                TradingAccount[]
 

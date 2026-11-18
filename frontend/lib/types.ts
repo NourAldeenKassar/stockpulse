@@ -41,6 +41,8 @@ export interface AuthTokens {
 export interface LlmSettings {
   llmGatewayUrl: string;
   hasLlmKey: boolean;
+  llmPremiumGatewayUrl: string;
+  hasPremiumKey: boolean;
   hasFinnhubKey: boolean;
 }
 
@@ -73,9 +75,50 @@ export interface AnalystConsensus {
 export interface StockNarrative {
   summary: string;
   consensusReading: string;
+  fundamentalsReading: string;
+  newsReading: string;
   positionNotes: string;
   risks: string[];
   considerations: string[];
+}
+
+export interface Fundamentals {
+  peRatio: number | null;
+  pbRatio: number | null;
+  beta: number | null;
+  dividendYield: number | null;
+  week52High: number | null;
+  week52Low: number | null;
+  grossMargin: number | null;
+  netMargin: number | null;
+  returnOnEquity: number | null;
+  marketCap: number | null;
+}
+
+export interface NewsItem {
+  headline: string;
+  summary: string;
+  source: string;
+  url: string;
+  datetime: string;
+}
+
+export interface EarningsItem {
+  period: string;
+  actual: number | null;
+  estimate: number | null;
+  surprisePercent: number | null;
+}
+
+/** Free market data. Each part is independently nullable. */
+export interface StockMarketData {
+  symbol: string | null;
+  consensus: AnalystConsensus | null;
+  fundamentals: Fundamentals | null;
+  news: NewsItem[];
+  earnings: EarningsItem[];
+  peers: string[];
+  fetchedAt: string;
 }
 
 export interface StockAnalysis {

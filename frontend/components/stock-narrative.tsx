@@ -80,6 +80,26 @@ export default function StockNarrativePanel({
             {narrative.consensusReading}
           </p>
         </div>
+        {narrative.fundamentalsReading ? (
+          <div>
+            <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-text-muted">
+              Reading the fundamentals
+            </p>
+            <p className="text-sm leading-relaxed text-text-secondary">
+              {narrative.fundamentalsReading}
+            </p>
+          </div>
+        ) : null}
+        {narrative.newsReading ? (
+          <div>
+            <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-text-muted">
+              Reading the news
+            </p>
+            <p className="text-sm leading-relaxed text-text-secondary">
+              {narrative.newsReading}
+            </p>
+          </div>
+        ) : null}
         <div>
           <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-text-muted">
             Your position

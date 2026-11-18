@@ -15,4 +15,14 @@ export class UpdateLlmDto {
   @IsString()
   @MaxLength(512)
   finnhubKey?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  llmPremiumGatewayUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(512)
+  llmPremiumKey?: string;
 }

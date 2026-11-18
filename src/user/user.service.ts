@@ -16,6 +16,8 @@ export class UserService {
       select: {
         llmGatewayUrl: true,
         llmGatewayKeyEncrypted: true,
+        llmPremiumGatewayUrl: true,
+        llmPremiumKeyEncrypted: true,
         finnhubKeyEncrypted: true,
       },
     });
@@ -23,6 +25,8 @@ export class UserService {
     return {
       llmGatewayUrl: user.llmGatewayUrl || '',
       hasLlmKey: !!user.llmGatewayKeyEncrypted,
+      llmPremiumGatewayUrl: user.llmPremiumGatewayUrl || '',
+      hasPremiumKey: !!user.llmPremiumKeyEncrypted,
       hasFinnhubKey: !!user.finnhubKeyEncrypted,
     };
   }
@@ -32,11 +36,26 @@ export class UserService {
     llmGatewayUrl?: string,
     llmGatewayKey?: string,
     finnhubKey?: string,
+    llmPremiumGatewayUrl?: string,
+    llmPremiumKey?: string,
   ) {
     const data: Prisma.UserUpdateInput = {};
 
     if (llmGatewayUrl !== undefined) {
       data.llmGatewayUrl = llmGatewayUrl || null;
+    }
+
+    if (llmPremiumGatewayUrl !== undefined) {
+      data.llmPremiumGatewayUrl = llmPremiumGatewayUrl || null;
+    }
+
+    if (llmPremiumKey !== undefined) {
+      const encrypted = llmPremiumKey
+        ? this.crypto.encrypt(llmPremiumKey)
+        : null;
+      data.llmPremiumKeyEncrypted = encrypted?.ciphertext ?? null;
+      data.llmPremiumKeyIv = encrypted?.iv ?? null;
+      data.llmPremiumKeyTag = encrypted?.tag ?? null;
     }
 
     if (llmGatewayKey !== undefined) {
@@ -81,12 +100,29 @@ export class UserService {
     });
   }
 
+  /**
+   * Credentials for a tier. 'premium' falls back to the standard gateway when
+   * no separate one is configured, so per-stock analysis still works on a
+   * single key — it just loses the separate cost tracking.
+   */
   async decryptLlmKey(
     userId: string,
+    tier: 'standard' | 'premium' = 'standard',
   ): Promise<{ url: string; key: string } | null> {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
     });
+
+    if (tier === 'premium') {
+      const premiumKey = this.crypto.tryDecryptField({
+        ciphertext: user.llmPremiumKeyEncrypted,
+        iv: user.llmPremiumKeyIv,
+        tag: user.llmPremiumKeyTag,
+      });
+      if (user.llmPremiumGatewayUrl && premiumKey) {
+        return { url: user.llmPremiumGatewayUrl, key: premiumKey };
+      }
+    }
 
     const key = this.crypto.tryDecryptField({
       ciphertext: user.llmGatewayKeyEncrypted,

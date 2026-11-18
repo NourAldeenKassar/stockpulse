@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import * as api from '@/lib/api';
-import type { Position, StockAnalysis } from '@/lib/types';
+import type { Position, StockAnalysis, StockMarketData } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { pplPercent, allocationPercent, totalMarketValue } from '@/lib/metrics';
 import { Blur } from '@/lib/privacy';
@@ -16,6 +16,10 @@ import {
   Spinner,
 } from '@/components/ui';
 import AnalystConsensusPanel from '@/components/analyst-consensus';
+import StockFundamentals from '@/components/stock-fundamentals';
+import StockEarnings from '@/components/stock-earnings';
+import StockNews from '@/components/stock-news';
+import StockPeers from '@/components/stock-peers';
 import StockNarrativePanel from '@/components/stock-narrative';
 
 function Stat({
@@ -49,6 +53,8 @@ export default function StockPage() {
   const [position, setPosition] = useState<Position | null>(null);
   const [portfolioValue, setPortfolioValue] = useState(0);
   const [result, setResult] = useState<StockAnalysis | null>(null);
+  const [market, setMarket] = useState<StockMarketData | null>(null);
+  const [marketLoading, setMarketLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
@@ -75,17 +81,35 @@ export default function StockPage() {
         ]);
         if (cancelled) return;
 
-        setPosition(
-          positions.find((p) => p.instrument.ticker === ticker) ?? null,
-        );
+        const found =
+          positions.find((p) => p.instrument.ticker === ticker) ?? null;
+        setPosition(found);
         setPortfolioValue(totalMarketValue(positions));
         if (cached) setResult(cached);
+        setLoading(false);
+
+        // Free data: fetched on open rather than gated behind the paid call.
+        try {
+          const data = await api.getStockMarketData(
+            id,
+            ticker,
+            found?.instrument.isin ?? null,
+          );
+          if (!cancelled) setMarket(data);
+        } catch {
+          // The page still works without market data.
+        } finally {
+          if (!cancelled) setMarketLoading(false);
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to load');
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setMarketLoading(false);
+        }
       }
     })();
 
@@ -191,15 +215,51 @@ export default function StockPage() {
         </p>
       </Card>
 
-      {result?.consensus ? (
-        <AnalystConsensusPanel consensus={result.consensus} />
-      ) : (
+      {marketLoading && (
+        <Card>
+          <div className="flex items-center gap-3 py-4">
+            <Spinner size="sm" />
+            <span className="text-sm text-text-muted">
+              Loading market data...
+            </span>
+          </div>
+        </Card>
+      )}
+
+      {!marketLoading && market?.consensus && (
+        <AnalystConsensusPanel consensus={market.consensus} />
+      )}
+
+      {!marketLoading && market?.fundamentals && (
+        <StockFundamentals
+          fundamentals={market.fundamentals}
+          currentPrice={position.currentPrice}
+        />
+      )}
+
+      {!marketLoading && market && <StockEarnings earnings={market.earnings} />}
+      {!marketLoading && market && <StockNews news={market.news} />}
+      {!marketLoading && market && <StockPeers peers={market.peers} />}
+
+      {!marketLoading && !market && (
+        <Card>
+          <SectionHeading>Market data</SectionHeading>
+          <p className="text-sm text-text-muted">
+            No Finnhub API key is configured. Add one in{' '}
+            <Link href="/settings" className="text-cyan hover:underline">
+              Settings
+            </Link>{' '}
+            to see analyst ratings, fundamentals, earnings and news.
+          </p>
+        </Card>
+      )}
+
+      {!marketLoading && market && !market.consensus && (
         <Card>
           <SectionHeading>Analyst consensus</SectionHeading>
           <p className="text-sm text-text-muted">
-            {result
-              ? 'No analyst data could be matched to this holding, so none is shown rather than guessed. Funds and ETFs generally have no analyst coverage.'
-              : 'Generate an analysis to fetch analyst recommendations for this holding.'}
+            No analyst data could be matched to this holding, so none is shown
+            rather than guessed. Funds and ETFs generally have no coverage.
           </p>
         </Card>
       )}

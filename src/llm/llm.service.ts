@@ -4,10 +4,15 @@ import type { LlmPrompt } from './llm.types.js';
 
 export interface LlmOptions {
   /**
-   * false lets the gateway route to paid providers. The gateway has no notion
-   * of cheap and expensive keys: this flag is what picks the tier.
+   * false lets the gateway route to paid providers. The gateway itself has no
+   * notion of cheap and expensive keys: this flag is what picks the tier.
    */
   freeOnly: boolean;
+  /**
+   * Which stored credentials to use. 'premium' prefers the separate premium
+   * gateway when one is configured, so its spend is tracked under its own key.
+   */
+  tier?: 'standard' | 'premium';
   temperature?: number;
   maxTokens?: number;
 }
@@ -29,7 +34,10 @@ export class LlmService {
     prompt: LlmPrompt,
     options: LlmOptions,
   ): Promise<LlmResult | null> {
-    const creds = await this.userService.decryptLlmKey(userId);
+    const creds = await this.userService.decryptLlmKey(
+      userId,
+      options.tier ?? 'standard',
+    );
     if (!creds) {
       this.logger.warn('LLM Gateway not configured for user');
       return null;

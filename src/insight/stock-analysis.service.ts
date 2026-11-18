@@ -9,12 +9,16 @@ import { UserService } from '../user/user.service.js';
 import { LlmService } from '../llm/llm.service.js';
 import { parseJsonFromLlm } from '../llm/llm-json.js';
 import { buildStockAnalysisPrompt } from './stock-analysis.prompt.js';
-import type { AnalystConsensus } from '../marketdata/finnhub.types.js';
-import type { Position } from '../trading212/trading212.types.js';
+import type {
+  AnalystConsensus,
+  StockMarketData,
+} from '../marketdata/finnhub.types.js';
 
 export interface StockNarrative {
   summary: string;
   consensusReading: string;
+  fundamentalsReading: string;
+  newsReading: string;
   positionNotes: string;
   risks: string[];
   considerations: string[];
@@ -72,6 +76,28 @@ export class StockAnalysisService {
     };
   }
 
+  /**
+   * Free market data for a holding. Deliberately separate from generate():
+   * Finnhub costs nothing and answers in milliseconds, so it must not sit
+   * behind a paid LLM call the way it used to.
+   */
+  async getMarketData(
+    userId: string,
+    ticker: string,
+    isin: string | null,
+  ): Promise<StockMarketData | null> {
+    const finnhubKey = await this.users.decryptFinnhubKey(userId);
+    if (!finnhubKey) return null;
+
+    try {
+      return await this.finnhub.getMarketData(finnhubKey, ticker, isin);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Finnhub market data failed: ${reason}`);
+      return null;
+    }
+  }
+
   async generate(
     userId: string,
     accountId: string,
@@ -88,7 +114,12 @@ export class StockAnalysisService {
       throw new NotFoundException(`No open position for ${ticker}`);
     }
 
-    const consensus = await this.loadConsensus(userId, position);
+    const marketData = await this.getMarketData(
+      userId,
+      ticker,
+      position.instrument.isin || null,
+    );
+    const consensus = marketData?.consensus ?? null;
     const portfolioValue = positions.reduce(
       (sum, p) => sum + p.walletImpact.currentValue,
       0,
@@ -96,7 +127,7 @@ export class StockAnalysisService {
 
     const prompt = buildStockAnalysisPrompt(
       position,
-      consensus,
+      marketData,
       portfolioValue,
     );
 
@@ -104,6 +135,7 @@ export class StockAnalysisService {
     // allowed to route this to a paid provider.
     const result = await this.llm.generate(userId, prompt, {
       freeOnly: false,
+      tier: 'premium',
       maxTokens: 900,
     });
 
@@ -123,6 +155,8 @@ export class StockAnalysisService {
 
     const narrative: StockNarrative = {
       ...parsed,
+      fundamentalsReading: parsed.fundamentalsReading ?? '',
+      newsReading: parsed.newsReading ?? '',
       risks: Array.isArray(parsed.risks) ? parsed.risks : [],
       considerations: Array.isArray(parsed.considerations)
         ? parsed.considerations
@@ -150,30 +184,5 @@ export class StockAnalysisService {
       model: result.model,
       generatedAt: new Date().toISOString(),
     };
-  }
-
-  /**
-   * Analyst data is optional: without a Finnhub key, or when the ticker cannot
-   * be mapped to a symbol, the analysis proceeds on position data alone rather
-   * than showing a half-populated or guessed panel.
-   */
-  private async loadConsensus(
-    userId: string,
-    position: Position,
-  ): Promise<AnalystConsensus | null> {
-    const finnhubKey = await this.users.decryptFinnhubKey(userId);
-    if (!finnhubKey) return null;
-
-    try {
-      return await this.finnhub.getConsensus(
-        finnhubKey,
-        position.instrument.ticker,
-        position.instrument.isin || null,
-      );
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`Finnhub lookup failed: ${reason}`);
-      return null;
-    }
   }
 }

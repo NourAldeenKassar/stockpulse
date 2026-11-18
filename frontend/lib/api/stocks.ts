@@ -1,5 +1,5 @@
 import { request } from '../http';
-import type { StockAnalysis } from '../types';
+import type { StockAnalysis, StockMarketData } from '../types';
 
 export function getStockAnalysis(
   accountId: string,
@@ -17,5 +17,17 @@ export function generateStockAnalysis(
   return request(
     `/accounts/${accountId}/stocks/${encodeURIComponent(ticker)}/analysis`,
     { method: 'POST' },
+  );
+}
+
+/** Free analyst data, fundamentals, news, earnings and peers. No LLM call. */
+export function getStockMarketData(
+  accountId: string,
+  ticker: string,
+  isin?: string | null,
+): Promise<StockMarketData | null> {
+  const query = isin ? `?isin=${encodeURIComponent(isin)}` : '';
+  return request(
+    `/accounts/${accountId}/stocks/${encodeURIComponent(ticker)}/market-data${query}`,
   );
 }

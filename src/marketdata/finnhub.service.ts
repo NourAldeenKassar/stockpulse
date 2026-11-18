@@ -5,7 +5,11 @@ import { namesMatch } from './company-name.js';
 import type {
   AnalystConsensus,
   CompanyProfile,
+  EarningsItem,
+  Fundamentals,
+  NewsItem,
   RecommendationTrend,
+  StockMarketData,
   SymbolSearchResult,
 } from './finnhub.types.js';
 
@@ -14,11 +18,31 @@ const BASE_URL = 'https://finnhub.io/api/v1';
 // Finnhub's free tier allows 60 calls per minute, keyed per API key.
 const RATE_LIMIT = { maxCalls: 55, windowMs: 60_000 };
 
+// Fundamentals, news and ratings move slowly. Re-opening a holding should not
+// spend six more calls against a 60/min budget.
+const CACHE_TTL_MS = 15 * 60_000;
+
+const NEWS_WINDOW_DAYS = 30;
+const MAX_NEWS_ITEMS = 6;
+
+function day(offsetDays = 0): string {
+  const d = new Date(Date.now() + offsetDays * 86_400_000);
+  return d.toISOString().slice(0, 10);
+}
+
+function num(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
 @Injectable()
 export class FinnhubService {
   private readonly logger = new Logger(FinnhubService.name);
   private readonly limiter = new RateLimiter();
   private readonly symbolCache = new Map<string, string | null>();
+  private readonly marketCache = new Map<
+    string,
+    { at: number; data: StockMarketData }
+  >();
 
   private async request<T>(
     apiKey: string,
@@ -128,6 +152,150 @@ export class FinnhubService {
     }
 
     return base;
+  }
+
+  private async getFundamentals(
+    apiKey: string,
+    symbol: string,
+  ): Promise<Fundamentals | null> {
+    const res = await this.request<{ metric?: Record<string, unknown> }>(
+      apiKey,
+      '/stock/metric',
+      { symbol, metric: 'all' },
+    );
+    const m = res?.metric;
+    if (!m) return null;
+
+    const f: Fundamentals = {
+      peRatio: num(m['peTTM']) ?? num(m['peBasicExclExtraTTM']),
+      pbRatio: num(m['pbQuarterly']) ?? num(m['pbAnnual']),
+      beta: num(m['beta']),
+      dividendYield: num(m['dividendYieldIndicatedAnnual']),
+      week52High: num(m['52WeekHigh']),
+      week52Low: num(m['52WeekLow']),
+      grossMargin: num(m['grossMarginTTM']),
+      netMargin: num(m['netProfitMarginTTM']),
+      returnOnEquity: num(m['roeTTM']),
+      marketCap: num(m['marketCapitalization']),
+    };
+
+    // Every field empty means no usable coverage; show nothing rather than a
+    // card full of dashes.
+    return Object.values(f).some((v) => v !== null) ? f : null;
+  }
+
+  private async getNews(apiKey: string, symbol: string): Promise<NewsItem[]> {
+    const items = await this.request<
+      Array<{
+        headline?: string;
+        summary?: string;
+        source?: string;
+        url?: string;
+        datetime?: number;
+      }>
+    >(apiKey, '/company-news', {
+      symbol,
+      from: day(-NEWS_WINDOW_DAYS),
+      to: day(),
+    });
+
+    if (!Array.isArray(items)) return [];
+
+    return items
+      .filter((n) => n.headline && n.url)
+      .slice(0, MAX_NEWS_ITEMS)
+      .map((n) => ({
+        headline: n.headline!,
+        summary: n.summary ?? '',
+        source: n.source ?? '',
+        url: n.url!,
+        datetime: n.datetime
+          ? new Date(n.datetime * 1000).toISOString()
+          : new Date().toISOString(),
+      }));
+  }
+
+  private async getEarnings(
+    apiKey: string,
+    symbol: string,
+  ): Promise<EarningsItem[]> {
+    const items = await this.request<
+      Array<{
+        period?: string;
+        actual?: number;
+        estimate?: number;
+        surprisePercent?: number;
+      }>
+    >(apiKey, '/stock/earnings', { symbol });
+
+    if (!Array.isArray(items)) return [];
+
+    return items.slice(0, 4).map((e) => ({
+      period: e.period ?? '',
+      actual: num(e.actual),
+      estimate: num(e.estimate),
+      surprisePercent: num(e.surprisePercent),
+    }));
+  }
+
+  private async getPeers(apiKey: string, symbol: string): Promise<string[]> {
+    const peers = await this.request<string[]>(apiKey, '/stock/peers', {
+      symbol,
+    });
+    if (!Array.isArray(peers)) return [];
+    return peers.filter((p) => p && p !== symbol).slice(0, 8);
+  }
+
+  /**
+   * Everything free we can show for a holding, fetched in parallel. Each part
+   * fails independently: a premium-gated or uncovered endpoint yields null or
+   * an empty list rather than sinking the whole panel.
+   */
+  async getMarketData(
+    apiKey: string,
+    ticker: string,
+    isin: string | null,
+  ): Promise<StockMarketData> {
+    const cacheKey = `${ticker}:${isin ?? ''}`;
+    const cached = this.marketCache.get(cacheKey);
+    if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.data;
+
+    const symbol = await this.resolveSymbol(apiKey, ticker, isin);
+
+    if (!symbol) {
+      const empty: StockMarketData = {
+        symbol: null,
+        consensus: null,
+        fundamentals: null,
+        news: [],
+        earnings: [],
+        peers: [],
+        fetchedAt: new Date().toISOString(),
+      };
+      this.marketCache.set(cacheKey, { at: Date.now(), data: empty });
+      return empty;
+    }
+
+    const [consensus, fundamentals, news, earnings, peers] = await Promise.all([
+      this.getConsensus(apiKey, ticker, isin),
+      this.getFundamentals(apiKey, symbol),
+      this.getNews(apiKey, symbol),
+      this.getEarnings(apiKey, symbol),
+      this.getPeers(apiKey, symbol),
+    ]);
+
+    const data: StockMarketData = {
+      symbol,
+      consensus,
+      fundamentals,
+      news,
+      earnings,
+      peers,
+      fetchedAt: new Date().toISOString(),
+    };
+
+    this.marketCache.set(cacheKey, { at: Date.now(), data });
+    return data;
   }
 
   async getConsensus(

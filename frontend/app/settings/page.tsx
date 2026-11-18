@@ -26,6 +26,8 @@ export default function SettingsPage() {
   const [llmUrl, setLlmUrl] = useState('');
   const [llmKey, setLlmKey] = useState('');
   const [finnhubKey, setFinnhubKey] = useState('');
+  const [premiumUrl, setPremiumUrl] = useState('');
+  const [premiumKey, setPremiumKey] = useState('');
   const [llmSaving, setLlmSaving] = useState(false);
   const [llmSuccess, setLlmSuccess] = useState(false);
 
@@ -43,6 +45,7 @@ export default function SettingsPage() {
       const settings = await api.getLlmSettings();
       setLlmSettings(settings);
       setLlmUrl(settings.llmGatewayUrl);
+      setPremiumUrl(settings.llmPremiumGatewayUrl);
     } catch {
       // ignore
     }
@@ -92,15 +95,20 @@ export default function SettingsPage() {
         llmGatewayUrl?: string;
         llmGatewayKey?: string;
         finnhubKey?: string;
+        llmPremiumGatewayUrl?: string;
+        llmPremiumKey?: string;
       } = {
         llmGatewayUrl: llmUrl,
+        llmPremiumGatewayUrl: premiumUrl,
       };
       if (llmKey) data.llmGatewayKey = llmKey;
       if (finnhubKey) data.finnhubKey = finnhubKey;
+      if (premiumKey) data.llmPremiumKey = premiumKey;
       const updated = await api.updateLlmSettings(data);
       setLlmSettings(updated);
       setLlmKey('');
       setFinnhubKey('');
+      setPremiumKey('');
       setLlmSuccess(true);
       setTimeout(() => setLlmSuccess(false), 3000);
     } finally {
@@ -302,6 +310,55 @@ export default function SettingsPage() {
                 llmSettings?.hasLlmKey
                   ? 'Leave empty to keep current key'
                   : 'Your LLM Gateway API key'
+              }
+            />
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-semibold">Smarter model (per-stock)</p>
+              {llmSettings?.hasPremiumKey && (
+                <span className="rounded-full bg-violet/10 px-3 py-1 text-xs font-semibold text-violet ring-1 ring-violet/20">
+                  Enabled
+                </span>
+              )}
+            </div>
+            <p className="mb-3 text-xs text-text-muted">
+              Optional. Per-stock analysis is the only thing that uses paid
+              providers. Pointing it at its own gateway key keeps that spend
+              separate in your gateway dashboard, and lets you revoke it without
+              breaking the free portfolio insights. Leave empty to reuse the
+              gateway above.
+            </p>
+
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+              Premium Gateway URL
+            </label>
+            <input
+              type="text"
+              value={premiumUrl}
+              onChange={(e) => setPremiumUrl(e.target.value)}
+              className="mb-3 w-full rounded-lg px-4 py-3 text-sm font-mono"
+              placeholder="e.g. http://your-gateway:3000"
+            />
+
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+              Premium API Key{' '}
+              {llmSettings?.hasPremiumKey && (
+                <span className="text-text-muted">
+                  (already set, leave empty to keep)
+                </span>
+              )}
+            </label>
+            <input
+              type="password"
+              value={premiumKey}
+              onChange={(e) => setPremiumKey(e.target.value)}
+              className="w-full rounded-lg px-4 py-3 text-sm font-mono"
+              placeholder={
+                llmSettings?.hasPremiumKey
+                  ? 'Leave empty to keep current key'
+                  : 'Gateway key for paid providers'
               }
             />
           </div>
