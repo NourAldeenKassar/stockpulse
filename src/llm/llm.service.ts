@@ -1,6 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { UserService } from '../user/user.service.js';
 import type { LlmPrompt } from './llm.types.js';
+
+// A gateway that is simply unreachable should fail fast, not hang the request.
+const REQUEST_TIMEOUT_MS = 120_000;
 
 export interface LlmOptions {
   /**
@@ -43,29 +51,54 @@ export class LlmService {
       return null;
     }
 
-    const response = await fetch(`${creds.url}/api/generate`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${creds.key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        system: prompt.system,
-        prompt: prompt.user,
-        freeOnly: options.freeOnly,
-        ...(options.temperature !== undefined && {
-          temperature: options.temperature,
+    let response: Response;
+    try {
+      response = await fetch(`${creds.url}/api/generate`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${creds.key}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          system: prompt.system,
+          prompt: prompt.user,
+          freeOnly: options.freeOnly,
+          ...(options.temperature !== undefined && {
+            temperature: options.temperature,
+          }),
+          ...(options.maxTokens !== undefined && {
+            maxTokens: options.maxTokens,
+          }),
         }),
-        ...(options.maxTokens !== undefined && {
-          maxTokens: options.maxTokens,
-        }),
-      }),
-    });
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+    } catch (err) {
+      // A wrong or unreachable gateway address throws a bare "fetch failed",
+      // which would surface as an unexplained 500. Name the address instead:
+      // it is almost always the thing that needs fixing.
+      const reason = err instanceof Error ? err.message : String(err);
+      this.logger.error(`LLM Gateway unreachable at ${creds.url}: ${reason}`);
+      throw new ServiceUnavailableException(
+        `Could not reach the LLM Gateway at ${creds.url}. Check the URL in Settings and that the gateway is running.`,
+      );
+    }
 
     if (!response.ok) {
-      const error = await response.text();
+      const error = await response.text().catch(() => '');
       this.logger.error(`LLM Gateway error ${response.status}: ${error}`);
-      throw new Error(`LLM Gateway error: ${response.status}`);
+
+      if (response.status === 401 || response.status === 403) {
+        throw new BadRequestException(
+          'The LLM Gateway rejected the API key. Check it in Settings.',
+        );
+      }
+      throw new ServiceUnavailableException(
+        `The LLM Gateway returned ${response.status}. ${
+          options.freeOnly
+            ? ''
+            : 'Per-stock analysis needs a paid provider enabled on the gateway.'
+        }`.trim(),
+      );
     }
 
     const data = (await response.json()) as Partial<LlmResult>;

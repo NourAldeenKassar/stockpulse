@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module.js';
@@ -12,6 +12,7 @@ import { UserModule } from './user/user.module.js';
 import { LlmModule } from './llm/llm.module.js';
 import { InsightModule } from './insight/insight.module.js';
 import { MarketDataModule } from './marketdata/marketdata.module.js';
+import { Trading212ExceptionFilter } from './trading212/trading212-exception.filter.js';
 
 @Module({
   imports: [
@@ -30,6 +31,9 @@ import { MarketDataModule } from './marketdata/marketdata.module.js';
     InsightModule,
     MarketDataModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_FILTER, useClass: Trading212ExceptionFilter },
+  ],
 })
 export class AppModule {}
