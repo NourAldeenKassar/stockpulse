@@ -238,7 +238,12 @@ export default function StockPage() {
         />
       )}
 
-      {!marketLoading && market && <StockEarnings earnings={market.earnings} />}
+      {!marketLoading && market && (
+        <StockEarnings
+          earnings={market.earnings}
+          currency={market.fundamentals?.currency}
+        />
+      )}
       {!marketLoading && market && <StockNews news={market.news} />}
       {!marketLoading && market && <StockPeers peers={market.peers} />}
 

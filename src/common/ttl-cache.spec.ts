@@ -86,3 +86,36 @@ describe('TtlCache', () => {
     expect(calls).toBe(2);
   });
 });
+
+describe('TtlCache expireSooner', () => {
+  it('lets a loader shorten the life of its own value', async () => {
+    const cache = new TtlCache();
+    let calls = 0;
+
+    const load = () => {
+      calls++;
+      cache.expireSooner('k', 40);
+      return Promise.resolve(calls);
+    };
+
+    await cache.getOrLoad('k', 10_000, load);
+    await cache.getOrLoad('k', 10_000, load);
+    expect(calls).toBe(1);
+
+    await new Promise((r) => setTimeout(r, 60));
+    await cache.getOrLoad('k', 10_000, load);
+    expect(calls).toBe(2);
+  });
+
+  it('uses the full term when no override is set', async () => {
+    const cache = new TtlCache();
+    let calls = 0;
+    const load = () => Promise.resolve(++calls);
+
+    await cache.getOrLoad('k', 10_000, load);
+    await new Promise((r) => setTimeout(r, 60));
+    await cache.getOrLoad('k', 10_000, load);
+
+    expect(calls).toBe(1);
+  });
+});

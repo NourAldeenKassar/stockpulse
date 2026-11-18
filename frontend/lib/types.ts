@@ -153,6 +153,7 @@ export interface HoldingOverview {
   pplPercent: number;
   consensus: ConsensusTally | null;
   latestEarnings: EarningsItem | null;
+  reportingCurrency: string | null;
 }
 
 export interface PortfolioNewsItem extends NewsItem {

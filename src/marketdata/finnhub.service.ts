@@ -59,16 +59,24 @@ export class FinnhubService {
     params: Record<string, string>,
   ): Promise<T | null> {
     const key = `${path}?${new URLSearchParams(params).toString()}`;
-    return this.requestCache.getOrLoad(key, CACHE_TTL_MS, () =>
-      this.fetchUncached<T>(apiKey, path, params),
-    );
+    try {
+      return await this.requestCache.getOrLoad(key, CACHE_TTL_MS, () =>
+        this.fetchOrThrow<T>(apiKey, path, params),
+      );
+    } catch {
+      // Deliberately not cached. A failure is usually rate limiting or a
+      // momentary outage; remembering it for the full term would keep a
+      // holding blank long after the cause had passed. The cache does not
+      // store rejected loads, so the next caller retries.
+      return null;
+    }
   }
 
-  private async fetchUncached<T>(
+  private async fetchOrThrow<T>(
     apiKey: string,
     path: string,
     params: Record<string, string>,
-  ): Promise<T | null> {
+  ): Promise<T> {
     await this.limiter.acquire(apiKey.slice(0, 12), RATE_LIMIT);
 
     const query = new URLSearchParams({ ...params, token: apiKey });
@@ -76,7 +84,7 @@ export class FinnhubService {
 
     if (!res.ok) {
       this.logger.warn(`Finnhub ${res.status} on ${path}`);
-      return null;
+      throw new Error(`Finnhub ${res.status} on ${path}`);
     }
 
     return (await res.json()) as T;
@@ -98,7 +106,13 @@ export class FinnhubService {
     if (cached !== undefined) return cached;
 
     const resolved = await this.lookupSymbol(apiKey, ticker, isin);
-    this.symbolCache.set(cacheKey, resolved);
+
+    // Only a successful resolution is remembered. Caching a null would make a
+    // transient failure — a rate-limited lookup, say — permanent for the life
+    // of the process, blinding that holding until a restart. Retrying is cheap
+    // because the underlying responses are themselves cached.
+    if (resolved) this.symbolCache.set(cacheKey, resolved);
+
     return resolved;
   }
 
@@ -281,14 +295,18 @@ export class FinnhubService {
    * an empty list rather than sinking the whole panel.
    */
   /**
-   * Drops every cached response so the next read genuinely refetches.
+   * Drops every cache so the next read genuinely refetches, symbol mappings
+   * included.
    *
-   * Resolved symbols are kept: a ticker's symbol does not change, and
-   * rediscovering it costs two calls per holding.
+   * Rediscovering a symbol costs a couple of calls per holding, but keeping
+   * them would leave a user with no way to correct a bad mapping short of
+   * restarting the server — and a wrong mapping shows another company's data,
+   * which is the worst failure this feature has.
    */
   clearCaches(): void {
     this.marketCache.clear();
     this.requestCache.clear();
+    this.symbolCache.clear();
   }
 
   async getMarketData(

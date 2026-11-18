@@ -24,6 +24,8 @@ export interface HoldingOverview {
   pplPercent: number;
   consensus: ConsensusTally | null;
   latestEarnings: EarningsItem | null;
+  /** Currency the EPS figures are reported in, when known. */
+  reportingCurrency: string | null;
 }
 
 export interface PortfolioNewsItem extends NewsItem {
@@ -50,6 +52,14 @@ const MAX_NEWS = 12;
  */
 const OVERVIEW_TTL_MS = 10 * 60_000;
 
+/**
+ * A build where some holding could not be resolved is probably a transient
+ * upstream failure, usually rate limiting. Keeping it for the full term would
+ * serve a portfolio with pieces missing for ten minutes, so it expires quickly
+ * and heals itself on the next request.
+ */
+const INCOMPLETE_TTL_MS = 60_000;
+
 @Injectable()
 export class MarketOverviewService {
   private readonly logger = new Logger(MarketOverviewService.name);
@@ -72,9 +82,26 @@ export class MarketOverviewService {
     const key = `${userId}:${accountId}`;
     if (forceRefresh) this.cache.invalidate(key);
 
-    return this.cache.getOrLoad(key, OVERVIEW_TTL_MS, () =>
-      this.buildOverview(userId, accountId, forceRefresh),
-    );
+    return this.cache.getOrLoad(key, OVERVIEW_TTL_MS, async () => {
+      const overview = await this.buildOverview(
+        userId,
+        accountId,
+        forceRefresh,
+      );
+
+      // A holding with an ISIN but no resolved symbol means the lookup failed,
+      // not that the instrument has no coverage.
+      const unresolved =
+        overview?.holdings.filter((h) => !h.symbol).length ?? 0;
+      if (unresolved > 0) {
+        this.logger.warn(
+          `${unresolved} holding(s) unresolved; caching briefly so it can heal`,
+        );
+        this.cache.expireSooner(key, INCOMPLETE_TTL_MS);
+      }
+
+      return overview;
+    });
   }
 
   private async buildOverview(
@@ -121,6 +148,7 @@ export class MarketOverviewService {
               : 0,
           consensus: null,
           latestEarnings: null,
+          reportingCurrency: null,
         };
 
         try {
@@ -132,6 +160,7 @@ export class MarketOverviewService {
 
           base.symbol = data.symbol;
           base.latestEarnings = data.earnings[0] ?? null;
+          base.reportingCurrency = data.fundamentals?.currency ?? null;
 
           const latest = data.consensus?.trends[0];
           if (latest) {

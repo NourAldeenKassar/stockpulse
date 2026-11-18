@@ -5,8 +5,11 @@ import { Card, SectionHeading } from '@/components/ui';
 
 export default function StockEarnings({
   earnings,
+  currency,
 }: {
   earnings: EarningsItem[];
+  /** Reporting currency for the EPS figures, when known. */
+  currency?: string | null;
 }) {
   if (earnings.length === 0) return null;
 

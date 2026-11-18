@@ -28,8 +28,13 @@ export default function PortfolioEarnings({
           <span className="text-xs text-text-muted">most recent quarter</span>
         }
       >
-        Earnings
+        Earnings per share
       </SectionHeading>
+
+      <p className="mb-4 text-xs text-text-muted">
+        Reported EPS against what analysts expected. These are per-share
+        figures, not totals.
+      </p>
 
       <div className="space-y-2">
         {withEarnings.map((h) => {
@@ -54,7 +59,12 @@ export default function PortfolioEarnings({
                 <span className="text-xs text-text-muted">
                   est {e.estimate ?? '—'}
                 </span>
-                <span className="text-sm font-semibold">{e.actual ?? '—'}</span>
+                <span className="text-sm font-semibold">
+                  {e.actual ?? '—'}
+                  <span className="ml-1 text-[11px] font-normal text-text-muted">
+                    {h.reportingCurrency ? `${h.reportingCurrency} ` : ''}EPS
+                  </span>
+                </span>
                 {surprise !== null && (
                   <span
                     className={`rounded px-2 py-0.5 text-xs font-bold ${bg} ${tone}`}
