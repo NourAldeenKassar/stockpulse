@@ -22,6 +22,7 @@ import PositionsTable from '@/components/positions-table';
 import PortfolioSentiment from '@/components/portfolio-sentiment';
 import PortfolioNews from '@/components/portfolio-news';
 import PortfolioEarnings from '@/components/portfolio-earnings';
+import { SkeletonCard } from '@/components/ui';
 
 export interface SectionContext {
   summary: AccountSummary | null;
@@ -30,6 +31,9 @@ export interface SectionContext {
   selectedAccount: string;
   llmSettings: LlmSettings | null;
   overview: MarketOverview | null;
+  /** True while the free market data is still being fetched. */
+  overviewLoading: boolean;
+  onRefreshOverview?: () => void;
   asOf: number;
 }
 
@@ -45,6 +49,8 @@ export function buildSections(ctx: SectionContext): Record<string, ReactNode> {
     selectedAccount,
     llmSettings,
     overview,
+    overviewLoading,
+    onRefreshOverview,
     asOf,
   } = ctx;
   const hasPositions = positions.length > 0;
@@ -85,15 +91,25 @@ export function buildSections(ctx: SectionContext): Record<string, ReactNode> {
       </div>
     ) : null,
 
-    sentiment: overview ? (
-      <PortfolioSentiment overview={overview} accountId={selectedAccount} />
+    sentiment: overviewLoading ? (
+      <SkeletonCard title="Analyst sentiment" rows={4} />
+    ) : overview ? (
+      <PortfolioSentiment
+        overview={overview}
+        accountId={selectedAccount}
+        onRefresh={onRefreshOverview}
+      />
     ) : null,
 
-    earnings: overview ? (
+    earnings: overviewLoading ? (
+      <SkeletonCard title="Earnings" rows={3} />
+    ) : overview ? (
       <PortfolioEarnings overview={overview} accountId={selectedAccount} />
     ) : null,
 
-    news: overview ? (
+    news: overviewLoading ? (
+      <SkeletonCard title="News across your holdings" rows={4} />
+    ) : overview ? (
       <PortfolioNews overview={overview} accountId={selectedAccount} />
     ) : null,
 

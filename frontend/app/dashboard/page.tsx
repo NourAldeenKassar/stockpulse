@@ -34,6 +34,8 @@ export default function DashboardPage() {
     snapshots,
     llmSettings,
     overview,
+    overviewLoading,
+    refreshOverview,
     loading,
     error,
     asOf,
@@ -58,6 +60,8 @@ export default function DashboardPage() {
         selectedAccount,
         llmSettings,
         overview,
+        overviewLoading,
+        onRefreshOverview: refreshOverview,
         asOf,
       }),
     [
@@ -67,6 +71,8 @@ export default function DashboardPage() {
       selectedAccount,
       llmSettings,
       overview,
+      overviewLoading,
+      refreshOverview,
       asOf,
     ],
   );

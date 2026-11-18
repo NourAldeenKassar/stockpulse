@@ -49,4 +49,9 @@ export class TtlCache {
   invalidate(key: string): void {
     this.entries.delete(key);
   }
+
+  /** Drops everything. In-flight requests are left to settle. */
+  clear(): void {
+    this.entries.clear();
+  }
 }

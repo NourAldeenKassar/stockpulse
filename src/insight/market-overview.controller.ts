@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { AuthenticatedUser } from '../auth/current-user.decorator.js';
@@ -17,8 +17,9 @@ export class MarketOverviewController {
   async get(
     @CurrentUser() user: AuthenticatedUser,
     @Param('accountId') accountId: string,
+    @Query('refresh') refresh?: string,
   ) {
     await this.accountService.assertOwnership(user.id, accountId);
-    return this.overview.getOverview(user.id, accountId);
+    return this.overview.getOverview(user.id, accountId, refresh === 'true');
   }
 }

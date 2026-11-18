@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { MarketOverview } from '@/lib/types';
-import { Card, SectionHeading } from '@/components/ui';
+import { Button, Card, LocalTime, SectionHeading } from '@/components/ui';
 import { RATING_SCALE as RATINGS, SEGMENT_GAP } from '@/lib/rating-palette';
 
 /** Net score from -100 (all strong sell) to +100 (all strong buy). */
@@ -28,9 +28,11 @@ function verdict(score: number): { label: string; tone: string } {
 export default function PortfolioSentiment({
   overview,
   accountId,
+  onRefresh,
 }: {
   overview: MarketOverview;
   accountId: string;
+  onRefresh?: () => void;
 }) {
   const t = overview.sentiment;
   const score = netScore(t);
@@ -44,8 +46,13 @@ export default function PortfolioSentiment({
     <Card>
       <SectionHeading
         action={
-          <span className="text-xs text-text-muted">
+          <span className="flex items-center gap-2 text-xs text-text-muted">
             {overview.covered} of {overview.total} covered
+            {onRefresh && (
+              <Button variant="ghost" size="sm" onClick={onRefresh}>
+                Refresh
+              </Button>
+            )}
           </span>
         }
       >
@@ -154,7 +161,8 @@ export default function PortfolioSentiment({
       )}
 
       <p className="mt-5 border-t border-border pt-3 text-[11px] text-text-muted">
-        Source: Finnhub analyst recommendation counts
+        Source: Finnhub analyst recommendation counts · cached, fetched{' '}
+        <LocalTime iso={overview.fetchedAt} />
       </p>
     </Card>
   );

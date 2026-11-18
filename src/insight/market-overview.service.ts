@@ -3,6 +3,7 @@ import { AccountService } from '../account/account.service.js';
 import { Trading212Service } from '../trading212/trading212.service.js';
 import { FinnhubService } from '../marketdata/finnhub.service.js';
 import { UserService } from '../user/user.service.js';
+import { TtlCache } from '../common/ttl-cache.js';
 import type { EarningsItem, NewsItem } from '../marketdata/finnhub.types.js';
 
 export interface ConsensusTally {
@@ -42,9 +43,17 @@ export interface MarketOverview {
 
 const MAX_NEWS = 12;
 
+/**
+ * Ratings, fundamentals and news move slowly, and assembling this costs a few
+ * dozen upstream calls. Cached so a reload is free rather than re-running the
+ * whole fan-out, and so concurrent callers share one pass.
+ */
+const OVERVIEW_TTL_MS = 10 * 60_000;
+
 @Injectable()
 export class MarketOverviewService {
   private readonly logger = new Logger(MarketOverviewService.name);
+  private readonly cache = new TtlCache();
 
   constructor(
     private accountService: AccountService,
@@ -56,6 +65,22 @@ export class MarketOverviewService {
   async getOverview(
     userId: string,
     accountId: string,
+    forceRefresh = false,
+  ): Promise<MarketOverview | null> {
+    // Keyed by user as well as account: the credentials used to build this are
+    // the caller's, so one user's result must never serve another's.
+    const key = `${userId}:${accountId}`;
+    if (forceRefresh) this.cache.invalidate(key);
+
+    return this.cache.getOrLoad(key, OVERVIEW_TTL_MS, () =>
+      this.buildOverview(userId, accountId, forceRefresh),
+    );
+  }
+
+  private async buildOverview(
+    userId: string,
+    accountId: string,
+    forceRefresh = false,
   ): Promise<MarketOverview | null> {
     const finnhubKey = await this.users.decryptFinnhubKey(userId);
     if (!finnhubKey) return null;
@@ -70,71 +95,78 @@ export class MarketOverviewService {
       0,
     );
 
-    const holdings: HoldingOverview[] = [];
     const news: PortfolioNewsItem[] = [];
 
-    // Sequential rather than parallel: the Finnhub budget is 60 calls a minute
-    // and each holding costs several. The limiter would serialise these anyway,
-    // and this keeps one slow holding from stalling the rest behind it.
-    for (const p of positions) {
-      const value = p.walletImpact.currentValue;
-      const base: HoldingOverview = {
-        ticker: p.instrument.ticker,
-        name: p.instrument.name,
-        symbol: null,
-        value,
-        weight: portfolioValue > 0 ? (value / portfolioValue) * 100 : 0,
-        pplPercent:
-          p.averagePricePaid > 0
-            ? ((p.currentPrice - p.averagePricePaid) / p.averagePricePaid) * 100
-            : 0,
-        consensus: null,
-        latestEarnings: null,
-      };
+    // In parallel. Sequentially this took over a minute for seven holdings,
+    // because each one waits on several round trips before the next starts.
+    // The rate limiter still protects the budget: when a portfolio needs more
+    // calls than the window allows, it queues them rather than dropping them.
+    // Cleared once rather than per holding: the caches are shared, so clearing
+    // inside the loop would discard work the parallel fetches just did.
+    if (forceRefresh) this.finnhub.clearCaches();
 
-      try {
-        const data = await this.finnhub.getMarketData(
-          finnhubKey,
-          p.instrument.ticker,
-          p.instrument.isin || null,
-        );
+    const holdings = await Promise.all(
+      positions.map(async (p) => {
+        const value = p.walletImpact.currentValue;
+        const base: HoldingOverview = {
+          ticker: p.instrument.ticker,
+          name: p.instrument.name,
+          symbol: null,
+          value,
+          weight: portfolioValue > 0 ? (value / portfolioValue) * 100 : 0,
+          pplPercent:
+            p.averagePricePaid > 0
+              ? ((p.currentPrice - p.averagePricePaid) / p.averagePricePaid) *
+                100
+              : 0,
+          consensus: null,
+          latestEarnings: null,
+        };
 
-        base.symbol = data.symbol;
-        base.latestEarnings = data.earnings[0] ?? null;
+        try {
+          const data = await this.finnhub.getMarketData(
+            finnhubKey,
+            p.instrument.ticker,
+            p.instrument.isin || null,
+          );
 
-        const latest = data.consensus?.trends[0];
-        if (latest) {
-          base.consensus = {
-            strongBuy: latest.strongBuy,
-            buy: latest.buy,
-            hold: latest.hold,
-            sell: latest.sell,
-            strongSell: latest.strongSell,
-            total:
-              latest.strongBuy +
-              latest.buy +
-              latest.hold +
-              latest.sell +
-              latest.strongSell,
-          };
+          base.symbol = data.symbol;
+          base.latestEarnings = data.earnings[0] ?? null;
+
+          const latest = data.consensus?.trends[0];
+          if (latest) {
+            base.consensus = {
+              strongBuy: latest.strongBuy,
+              buy: latest.buy,
+              hold: latest.hold,
+              sell: latest.sell,
+              strongSell: latest.strongSell,
+              total:
+                latest.strongBuy +
+                latest.buy +
+                latest.hold +
+                latest.sell +
+                latest.strongSell,
+            };
+          }
+
+          for (const item of data.news) {
+            news.push({
+              ...item,
+              ticker: p.instrument.ticker,
+              name: p.instrument.name,
+            });
+          }
+        } catch (err) {
+          const reason = err instanceof Error ? err.message : String(err);
+          this.logger.warn(
+            `Overview failed for ${p.instrument.ticker}: ${reason}`,
+          );
         }
 
-        for (const item of data.news) {
-          news.push({
-            ...item,
-            ticker: p.instrument.ticker,
-            name: p.instrument.name,
-          });
-        }
-      } catch (err) {
-        const reason = err instanceof Error ? err.message : String(err);
-        this.logger.warn(
-          `Overview failed for ${p.instrument.ticker}: ${reason}`,
-        );
-      }
-
-      holdings.push(base);
-    }
+        return base;
+      }),
+    );
 
     return {
       holdings,

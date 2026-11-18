@@ -4,4 +4,5 @@ export { default as Badge } from './badge';
 export { default as Button } from './button';
 export { default as SectionHeading } from './section-heading';
 export { default as LocalTime } from './local-time';
+export { Skeleton, SkeletonCard } from './skeleton';
 export { cn } from './cn';

@@ -24,6 +24,8 @@ export interface DashboardData {
   /** Free Finnhub data across all holdings. Null until loaded, or with no key. */
   overview: MarketOverview | null;
   overviewLoading: boolean;
+  /** Forces the cached market data to be rebuilt upstream. */
+  refreshOverview: () => void;
   loading: boolean;
   error: string;
   /**
@@ -126,13 +128,24 @@ export function useDashboardData(): DashboardData {
     }
   }, []);
 
+  // Bumping this re-runs the fetch below asking upstream to rebuild.
+  const [overviewNonce, setOverviewNonce] = useState(0);
+
+  const refreshOverview = useCallback(() => {
+    setOverviewFor(null);
+    setOverviewNonce((n) => n + 1);
+  }, []);
+
   useEffect(() => {
     if (!selectedAccount) return;
     let cancelled = false;
 
     void (async () => {
       try {
-        const data = await api.getMarketOverview(selectedAccount);
+        const data = await api.getMarketOverview(
+          selectedAccount,
+          overviewNonce > 0,
+        );
         if (!cancelled) setOverviewFor({ account: selectedAccount, data });
       } catch {
         // The dashboard works without market data.
@@ -144,7 +157,7 @@ export function useDashboardData(): DashboardData {
     return () => {
       cancelled = true;
     };
-  }, [selectedAccount]);
+  }, [selectedAccount, overviewNonce]);
 
   useEffect(() => {
     if (!selectedAccount) return;
@@ -171,6 +184,7 @@ export function useDashboardData(): DashboardData {
     llmSettings,
     overview: overviewReady ? (overviewFor?.data ?? null) : null,
     overviewLoading: Boolean(selectedAccount) && !overviewReady,
+    refreshOverview,
     loading,
     error,
     asOf,

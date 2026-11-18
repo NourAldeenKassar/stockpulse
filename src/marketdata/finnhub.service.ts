@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RateLimiter } from '../common/rate-limiter.js';
+import { TtlCache } from '../common/ttl-cache.js';
 import { parseTrading212Ticker } from './symbol.js';
 import { namesMatch } from './company-name.js';
 import type {
@@ -39,12 +40,31 @@ export class FinnhubService {
   private readonly logger = new Logger(FinnhubService.name);
   private readonly limiter = new RateLimiter();
   private readonly symbolCache = new Map<string, string | null>();
+  private readonly requestCache = new TtlCache();
   private readonly marketCache = new Map<
     string,
     { at: number; data: StockMarketData }
   >();
 
+  /**
+   * Cached and deduplicated per path and parameters.
+   *
+   * Building a portfolio view asks for the same company profile from several
+   * directions, and every duplicate spends one of 60 calls a minute. Collapsing
+   * them is the difference between fitting in the budget and being throttled.
+   */
   private async request<T>(
+    apiKey: string,
+    path: string,
+    params: Record<string, string>,
+  ): Promise<T | null> {
+    const key = `${path}?${new URLSearchParams(params).toString()}`;
+    return this.requestCache.getOrLoad(key, CACHE_TTL_MS, () =>
+      this.fetchUncached<T>(apiKey, path, params),
+    );
+  }
+
+  private async fetchUncached<T>(
     apiKey: string,
     path: string,
     params: Record<string, string>,
@@ -260,6 +280,17 @@ export class FinnhubService {
    * fails independently: a premium-gated or uncovered endpoint yields null or
    * an empty list rather than sinking the whole panel.
    */
+  /**
+   * Drops every cached response so the next read genuinely refetches.
+   *
+   * Resolved symbols are kept: a ticker's symbol does not change, and
+   * rediscovering it costs two calls per holding.
+   */
+  clearCaches(): void {
+    this.marketCache.clear();
+    this.requestCache.clear();
+  }
+
   async getMarketData(
     apiKey: string,
     ticker: string,

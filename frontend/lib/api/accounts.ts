@@ -46,6 +46,8 @@ export function getAccountPositions(accountId: string): Promise<Position[]> {
 /** Portfolio-wide analyst sentiment, news and earnings. Free, no LLM call. */
 export function getMarketOverview(
   accountId: string,
+  refresh = false,
 ): Promise<MarketOverview | null> {
-  return request(`/accounts/${accountId}/market-overview`);
+  const query = refresh ? '?refresh=true' : '';
+  return request(`/accounts/${accountId}/market-overview${query}`);
 }
