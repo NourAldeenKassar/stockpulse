@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { RateLimiter } from '../common/rate-limiter.js';
+import { TtlCache } from '../common/ttl-cache.js';
 import type { RateLimitConfig } from '../common/rate-limiter.js';
 import { Trading212ApiError } from './trading212.error.js';
 import type {
@@ -23,11 +24,22 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
 
 const MAX_ATTEMPTS = 3;
 
+/**
+ * Just under each endpoint's own limit, so a page reload is served from cache
+ * rather than queueing behind the rate limiter. Live prices still refresh
+ * about as often as Trading212 itself allows.
+ */
+const CACHE_TTL_MS: Record<string, number> = {
+  accountSummary: 5000,
+  positions: 2000,
+};
+
 @Injectable()
 export class Trading212Service {
   private readonly logger = new Logger(Trading212Service.name);
   private readonly baseUrl: string;
   private readonly limiter = new RateLimiter();
+  private readonly cache = new TtlCache();
 
   constructor() {
     this.baseUrl =
@@ -58,21 +70,35 @@ export class Trading212Service {
     apiKey: string,
     apiSecret: string,
   ): Promise<AccountSummary> {
-    return this.request<AccountSummary>(
-      apiKey,
-      apiSecret,
-      '/api/v0/equity/account/summary',
-      'accountSummary',
+    return this.cached('accountSummary', apiKey, () =>
+      this.request<AccountSummary>(
+        apiKey,
+        apiSecret,
+        '/api/v0/equity/account/summary',
+        'accountSummary',
+      ),
     );
   }
 
   async getPositions(apiKey: string, apiSecret: string): Promise<Position[]> {
-    return this.request<Position[]>(
-      apiKey,
-      apiSecret,
-      '/api/v0/equity/positions',
-      'positions',
+    return this.cached('positions', apiKey, () =>
+      this.request<Position[]>(
+        apiKey,
+        apiSecret,
+        '/api/v0/equity/positions',
+        'positions',
+      ),
     );
+  }
+
+  private cached<T>(
+    endpoint: string,
+    apiKey: string,
+    load: () => Promise<T>,
+  ): Promise<T> {
+    const ttl = CACHE_TTL_MS[endpoint];
+    if (!ttl) return load();
+    return this.cache.getOrLoad(this.rateLimitKey(apiKey, endpoint), ttl, load);
   }
 
   async getDividends(apiKey: string, apiSecret: string): Promise<Dividend[]> {

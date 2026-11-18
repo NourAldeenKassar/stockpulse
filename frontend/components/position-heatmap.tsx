@@ -5,16 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import type { Position } from '@/lib/types';
 import { pplPercent } from '@/lib/metrics';
+import { pnlColor } from '@/lib/rating-palette';
 import { formatCurrency } from '@/lib/format';
-
-function getPnlColor(pplPercent: number): string {
-  if (pplPercent >= 10) return '#059669';
-  if (pplPercent >= 5) return '#10b981';
-  if (pplPercent >= 0) return '#34d399';
-  if (pplPercent >= -5) return '#fb7185';
-  if (pplPercent >= -10) return '#f43f5e';
-  return '#e11d48';
-}
 
 function CustomContent(props: any) {
   const { x, y, width, height, name, pplPercent, ticker, onSelect } = props;
@@ -33,7 +25,7 @@ function CustomContent(props: any) {
         width={width}
         height={height}
         rx={4}
-        fill={getPnlColor(pplPercent ?? 0)}
+        fill={pnlColor(pplPercent ?? 0).fill}
         stroke="rgba(10,10,26,0.8)"
         strokeWidth={2}
       />
@@ -43,7 +35,7 @@ function CustomContent(props: any) {
             x={x + width / 2}
             y={y + height / 2 - 6}
             textAnchor="middle"
-            fill="white"
+            fill={pnlColor(pplPercent ?? 0).text}
             fontSize={width > 80 ? 12 : 10}
             fontWeight="600"
           >
@@ -53,8 +45,9 @@ function CustomContent(props: any) {
             x={x + width / 2}
             y={y + height / 2 + 10}
             textAnchor="middle"
-            fill="rgba(255,255,255,0.8)"
+            fill={pnlColor(pplPercent ?? 0).text}
             fontSize={10}
+            opacity={0.85}
           >
             {pplPercent >= 0 ? '+' : ''}
             {pplPercent.toFixed(1)}%

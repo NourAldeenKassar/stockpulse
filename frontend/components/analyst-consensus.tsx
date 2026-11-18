@@ -3,14 +3,7 @@
 import { useMemo } from 'react';
 import type { AnalystConsensus, RecommendationTrend } from '@/lib/types';
 import { Card, LocalTime, SectionHeading } from '@/components/ui';
-
-const RATINGS = [
-  { key: 'strongBuy', label: 'Strong buy', color: '#059669' },
-  { key: 'buy', label: 'Buy', color: '#10b981' },
-  { key: 'hold', label: 'Hold', color: '#64748b' },
-  { key: 'sell', label: 'Sell', color: '#fb7185' },
-  { key: 'strongSell', label: 'Strong sell', color: '#f43f5e' },
-] as const;
+import { RATING_SCALE as RATINGS, SEGMENT_GAP } from '@/lib/rating-palette';
 
 function total(trend: RecommendationTrend): number {
   return RATINGS.reduce((sum, r) => sum + (trend[r.key] || 0), 0);
@@ -73,6 +66,7 @@ export default function AnalystConsensusPanel({
               style={{
                 width: `${(value / count) * 100}%`,
                 backgroundColor: r.color,
+                borderRight: `${SEGMENT_GAP} solid var(--color-bg)`,
               }}
               title={`${r.label}: ${value}`}
             />
@@ -119,6 +113,7 @@ export default function AnalystConsensusPanel({
                           style={{
                             width: `${(value / t) * 100}%`,
                             backgroundColor: r.color,
+                            borderRight: `${SEGMENT_GAP} solid var(--color-bg)`,
                           }}
                         />
                       );

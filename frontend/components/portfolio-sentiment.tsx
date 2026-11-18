@@ -3,19 +3,7 @@
 import Link from 'next/link';
 import type { MarketOverview } from '@/lib/types';
 import { Card, SectionHeading } from '@/components/ui';
-
-const RATINGS = [
-  { key: 'strongBuy', label: 'Strong buy', short: 'S.Buy', color: '#059669' },
-  { key: 'buy', label: 'Buy', short: 'Buy', color: '#10b981' },
-  { key: 'hold', label: 'Hold', short: 'Hold', color: '#64748b' },
-  { key: 'sell', label: 'Sell', short: 'Sell', color: '#fb7185' },
-  {
-    key: 'strongSell',
-    label: 'Strong sell',
-    short: 'S.Sell',
-    color: '#f43f5e',
-  },
-] as const;
+import { RATING_SCALE as RATINGS, SEGMENT_GAP } from '@/lib/rating-palette';
 
 /** Net score from -100 (all strong sell) to +100 (all strong buy). */
 function netScore(t: MarketOverview['sentiment']): number {
@@ -91,7 +79,11 @@ export default function PortfolioSentiment({
               return (
                 <div
                   key={r.key}
-                  style={{ width: `${value}%`, backgroundColor: r.color }}
+                  style={{
+                    width: `${value}%`,
+                    backgroundColor: r.color,
+                    borderRight: `${SEGMENT_GAP} solid var(--color-bg)`,
+                  }}
                   title={`${r.label}: ${value.toFixed(0)}%`}
                 />
               );
@@ -146,6 +138,7 @@ export default function PortfolioSentiment({
                         style={{
                           width: `${(value / c.total) * 100}%`,
                           backgroundColor: r.color,
+                          borderRight: `${SEGMENT_GAP} solid var(--color-bg)`,
                         }}
                       />
                     );
