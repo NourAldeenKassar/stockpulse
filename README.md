@@ -75,11 +75,11 @@ no figures are shown rather than guessed ones.
 - Connects to [LLM Gateway](https://github.com/NourAldeenKassar/llm-gateway) for AI-powered portfolio analysis
 - Generates actionable insights: concentration warnings, diversification suggestions, P&L observations
 - Insights are saved to DB — loads instantly on next visit, regenerate on demand
-- **Two tiers.** Whole-portfolio insights run on free providers
-  (`freeOnly: true`). Per-stock analysis is the only thing that reaches a paid
-  provider, and it can point at its own gateway and key so that spend is
-  tracked and revocable on its own. Results are cached per holding, so
-  reopening a stock does not re-bill
+- **Two tiers, selected by which key is used.** Whole-portfolio insights use
+  the standard gateway key; per-stock analysis uses the separate "smarter
+  model" key, so point that one at a key issued on your gateway's paid tier.
+  Keeping them separate means the paid spend is tracked and revocable on its
+  own. Results are cached per holding, so reopening a stock does not re-bill
 - Configured per-user in Settings, not as a server requirement
 
 **Data Collection**
