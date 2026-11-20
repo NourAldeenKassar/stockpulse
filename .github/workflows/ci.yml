@@ -40,6 +40,13 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npx prisma generate
       - run: npm run build
+      - run: npm test
+
+      # The frontend type-checks against the backend's Trading212 types, so a
+      # backend change can break it. Build it here rather than at image build.
+      - run: npm ci --ignore-scripts --prefix frontend
+      - run: npm run build --prefix frontend
+      - run: npm run lint --prefix frontend
 
   docker:
     runs-on: ubuntu-latest

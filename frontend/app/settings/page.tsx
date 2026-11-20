@@ -5,6 +5,8 @@ import * as api from '@/lib/api';
 import type { TradingAccount } from '@/lib/types';
 import type { LlmSettings } from '@/lib/api';
 import AccountConnectForm from '@/components/account-connect-form';
+import CredentialsCard from '@/components/credentials-card';
+import { Card, LocalTime, SectionHeading, Spinner } from '@/components/ui';
 
 const INTERVAL_OPTIONS = [
   { value: 60, label: 'Every hour' },
@@ -22,10 +24,6 @@ export default function SettingsPage() {
     null,
   );
   const [llmSettings, setLlmSettings] = useState<LlmSettings | null>(null);
-  const [llmUrl, setLlmUrl] = useState('');
-  const [llmKey, setLlmKey] = useState('');
-  const [llmSaving, setLlmSaving] = useState(false);
-  const [llmSuccess, setLlmSuccess] = useState(false);
 
   const loadAccounts = useCallback(async () => {
     try {
@@ -40,15 +38,23 @@ export default function SettingsPage() {
     try {
       const settings = await api.getLlmSettings();
       setLlmSettings(settings);
-      setLlmUrl(settings.llmGatewayUrl);
     } catch {
       // ignore
     }
   }, []);
 
   useEffect(() => {
-    void loadAccounts();
-    void loadLlmSettings();
+    let cancelled = false;
+
+    void (async () => {
+      await loadAccounts();
+      if (cancelled) return;
+      await loadLlmSettings();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadAccounts, loadLlmSettings]);
 
   async function handleDisconnect(id: string) {
@@ -72,44 +78,10 @@ export default function SettingsPage() {
     await loadAccounts();
   }
 
-  async function handleSaveLlm(e: React.FormEvent) {
-    e.preventDefault();
-    setLlmSaving(true);
-    setLlmSuccess(false);
-    try {
-      const data: { llmGatewayUrl?: string; llmGatewayKey?: string } = {
-        llmGatewayUrl: llmUrl,
-      };
-      if (llmKey) data.llmGatewayKey = llmKey;
-      const updated = await api.updateLlmSettings(data);
-      setLlmSettings(updated);
-      setLlmKey('');
-      setLlmSuccess(true);
-      setTimeout(() => setLlmSuccess(false), 3000);
-    } finally {
-      setLlmSaving(false);
-    }
-  }
-
-  async function handleDisableLlm() {
-    setLlmSaving(true);
-    try {
-      const updated = await api.updateLlmSettings({
-        llmGatewayUrl: '',
-        llmGatewayKey: '',
-      });
-      setLlmSettings(updated);
-      setLlmUrl('');
-      setLlmKey('');
-    } finally {
-      setLlmSaving(false);
-    }
-  }
-
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan border-t-transparent" />
+        <Spinner />
       </div>
     );
   }
@@ -117,19 +89,19 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-heading text-2xl font-bold">Settings</h1>
-        <p className="mt-1 text-sm text-text-secondary">
+        <h1 className="font-heading text-display font-bold">Settings</h1>
+        <p className="mt-1 text-body text-text-secondary">
           Manage your Trading212 connections and snapshot preferences.
         </p>
       </div>
 
-      <div className="glass-card rounded-xl p-6">
-        <h2 className="mb-4 font-heading text-lg font-semibold">
+      <div className="surface rounded-xl p-5 sm:p-6">
+        <h2 className="mb-4 font-heading text-heading font-semibold">
           Connected Accounts
         </h2>
 
         {accounts.length === 0 ? (
-          <p className="text-sm text-text-muted">
+          <p className="text-body text-text-muted">
             No accounts connected yet. Add one below.
           </p>
         ) : (
@@ -141,10 +113,10 @@ export default function SettingsPage() {
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-heading text-base font-semibold">
+                    <h3 className="font-heading text-body font-semibold">
                       {acc.label}
                     </h3>
-                    <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-text-muted">
+                    <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-caption text-text-muted">
                       <span>
                         Status:{' '}
                         <span
@@ -155,13 +127,14 @@ export default function SettingsPage() {
                       </span>
                       <span>
                         Last snapshot:{' '}
-                        {acc.lastSnapshotAt
-                          ? new Date(acc.lastSnapshotAt).toLocaleString()
-                          : 'Never'}
+                        {acc.lastSnapshotAt ? (
+                          <LocalTime iso={acc.lastSnapshotAt} />
+                        ) : (
+                          'Never'
+                        )}
                       </span>
                       <span>
-                        Connected:{' '}
-                        {new Date(acc.createdAt).toLocaleDateString()}
+                        Connected: <LocalTime iso={acc.createdAt} mode="date" />
                       </span>
                     </div>
                   </div>
@@ -169,7 +142,7 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => void handleTriggerSnapshot(acc.id)}
-                      className="rounded-lg bg-cyan/10 px-3 py-1.5 text-xs font-medium text-cyan transition-colors hover:bg-cyan/20"
+                      className="rounded-lg bg-cyan/10 px-3 py-1.5 text-caption font-medium text-cyan transition-colors hover:bg-cyan/20"
                     >
                       Snapshot Now
                     </button>
@@ -179,13 +152,13 @@ export default function SettingsPage() {
                         <button
                           onClick={() => void handleDisconnect(acc.id)}
                           disabled={disconnecting === acc.id}
-                          className="rounded-lg bg-rose/15 px-3 py-1.5 text-xs font-medium text-rose transition-colors hover:bg-rose/25"
+                          className="rounded-lg bg-rose/15 px-3 py-1.5 text-caption font-medium text-rose transition-colors hover:bg-rose/25"
                         >
                           {disconnecting === acc.id ? 'Removing...' : 'Confirm'}
                         </button>
                         <button
                           onClick={() => setConfirmDisconnect(null)}
-                          className="rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted hover:text-text-secondary"
+                          className="rounded-lg px-3 py-1.5 text-caption font-medium text-text-muted hover:text-text-secondary"
                         >
                           Cancel
                         </button>
@@ -193,7 +166,7 @@ export default function SettingsPage() {
                     ) : (
                       <button
                         onClick={() => setConfirmDisconnect(acc.id)}
-                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-rose/60 transition-colors hover:bg-rose-glow hover:text-rose"
+                        className="rounded-lg px-3 py-1.5 text-caption font-medium text-rose/60 transition-colors hover:bg-rose-glow hover:text-rose"
                       >
                         Disconnect
                       </button>
@@ -202,7 +175,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="mt-4 flex items-center gap-3">
-                  <label className="text-sm text-text-secondary">
+                  <label className="text-body text-text-secondary">
                     Snapshot interval:
                   </label>
                   <select
@@ -210,7 +183,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       void handleIntervalChange(acc.id, Number(e.target.value))
                     }
-                    className="rounded-lg px-3 py-2 text-sm"
+                    className="rounded-lg px-3 py-2 text-body"
                   >
                     {INTERVAL_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -225,86 +198,12 @@ export default function SettingsPage() {
         )}
       </div>
 
-      <div className="glass-card rounded-xl p-6">
-        <h2 className="mb-4 font-heading text-lg font-semibold">Add Account</h2>
+      <Card>
+        <SectionHeading>Add account</SectionHeading>
         <AccountConnectForm onConnected={loadAccounts} />
-      </div>
+      </Card>
 
-      <div className="glass-card rounded-xl p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="font-heading text-lg font-semibold">AI Insights</h2>
-            <p className="mt-1 text-sm text-text-secondary">
-              Connect your LLM Gateway to enable AI-powered portfolio insights.
-            </p>
-          </div>
-          {llmSettings?.hasLlmKey && (
-            <span className="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald ring-1 ring-emerald/20">
-              Enabled
-            </span>
-          )}
-        </div>
-
-        <form onSubmit={handleSaveLlm} className="space-y-4">
-          {llmSuccess && (
-            <div className="rounded-lg bg-emerald-glow border border-emerald/20 px-4 py-3 text-sm text-emerald">
-              LLM Gateway settings saved
-            </div>
-          )}
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              Gateway URL
-            </label>
-            <input
-              type="text"
-              value={llmUrl}
-              onChange={(e) => setLlmUrl(e.target.value)}
-              className="w-full rounded-lg px-4 py-3 text-sm font-mono"
-              placeholder="e.g. http://your-gateway:3005"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              API Key{' '}
-              {llmSettings?.hasLlmKey && (
-                <span className="text-text-muted">(already set, leave empty to keep)</span>
-              )}
-            </label>
-            <input
-              type="password"
-              value={llmKey}
-              onChange={(e) => setLlmKey(e.target.value)}
-              className="w-full rounded-lg px-4 py-3 text-sm font-mono"
-              placeholder={
-                llmSettings?.hasLlmKey ? 'Leave empty to keep current key' : 'Your LLM Gateway API key'
-              }
-            />
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={llmSaving || !llmUrl}
-              className="rounded-lg bg-gradient-to-r from-cyan to-blue-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan/30 disabled:opacity-50 disabled:hover:translate-y-0"
-            >
-              {llmSaving ? 'Saving...' : 'Save'}
-            </button>
-
-            {llmSettings?.hasLlmKey && (
-              <button
-                type="button"
-                onClick={() => void handleDisableLlm()}
-                disabled={llmSaving}
-                className="rounded-lg px-6 py-2.5 text-sm font-medium text-rose/60 transition-colors hover:bg-rose-glow hover:text-rose"
-              >
-                Disable AI Insights
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
+      <CredentialsCard settings={llmSettings} onSaved={setLlmSettings} />
     </div>
   );
 }

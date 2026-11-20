@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { Position } from '@/lib/types';
+import { pplPercent } from '@/lib/metrics';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Blur } from '@/lib/privacy';
 
@@ -12,10 +13,7 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
       ticker: p.instrument.ticker,
       name: p.instrument.name,
       ppl: p.walletImpact.unrealizedProfitLoss,
-      pplPercent:
-        p.averagePricePaid > 0
-          ? ((p.currentPrice - p.averagePricePaid) / p.averagePricePaid) * 100
-          : 0,
+      pplPercent: pplPercent(p),
     }));
 
     const sorted = [...withPercent].sort((a, b) => b.pplPercent - a.pplPercent);
@@ -30,24 +28,26 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
 
   if (positions.length === 0) {
     return (
-      <div className="glass-card flex h-full items-center justify-center rounded-xl p-6">
+      <div className="surface flex h-full items-center justify-center rounded-xl p-5 sm:p-6">
         <p className="text-text-muted">No positions</p>
       </div>
     );
   }
 
   return (
-    <div className="glass-card rounded-xl p-6">
-      <h2 className="mb-4 font-heading text-lg font-semibold">Top Movers</h2>
+    <div className="surface rounded-xl p-5 sm:p-6">
+      <h2 className="mb-4 font-heading text-heading font-semibold">
+        Top Movers
+      </h2>
 
       <div className="space-y-5">
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-emerald">
+          <p className="mb-2 text-caption font-medium uppercase tracking-wider text-emerald">
             Top Gainers
           </p>
           <div className="space-y-2">
             {gainers.length === 0 ? (
-              <p className="text-sm text-text-muted">No gainers</p>
+              <p className="text-body text-text-muted">No gainers</p>
             ) : (
               gainers.map((p) => (
                 <div
@@ -55,14 +55,12 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
                   className="flex items-center justify-between rounded-lg bg-emerald-glow px-3 py-2"
                 >
                   <div>
-                    <span className="text-sm font-semibold">
-                      {p.name}
-                    </span>
-                    <span className="ml-2 text-xs text-text-muted">
+                    <span className="text-body font-semibold">{p.name}</span>
+                    <span className="ml-2 text-caption text-text-muted">
                       <Blur>{formatCurrency(p.ppl)}</Blur>
                     </span>
                   </div>
-                  <span className="rounded bg-emerald/15 px-2 py-0.5 text-xs font-bold text-emerald">
+                  <span className="rounded bg-emerald/15 px-2 py-0.5 text-caption font-bold text-emerald">
                     {formatPercent(p.pplPercent)}
                   </span>
                 </div>
@@ -72,12 +70,12 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-rose">
+          <p className="mb-2 text-caption font-medium uppercase tracking-wider text-rose">
             Top Losers
           </p>
           <div className="space-y-2">
             {losers.length === 0 ? (
-              <p className="text-sm text-text-muted">No losers</p>
+              <p className="text-body text-text-muted">No losers</p>
             ) : (
               losers.map((p) => (
                 <div
@@ -85,14 +83,12 @@ export default function TopMovers({ positions }: { positions: Position[] }) {
                   className="flex items-center justify-between rounded-lg bg-rose-glow px-3 py-2"
                 >
                   <div>
-                    <span className="text-sm font-semibold">
-                      {p.name}
-                    </span>
-                    <span className="ml-2 text-xs text-text-muted">
+                    <span className="text-body font-semibold">{p.name}</span>
+                    <span className="ml-2 text-caption text-text-muted">
                       <Blur>{formatCurrency(p.ppl)}</Blur>
                     </span>
                   </div>
-                  <span className="rounded bg-rose/15 px-2 py-0.5 text-xs font-bold text-rose">
+                  <span className="rounded bg-rose/15 px-2 py-0.5 text-caption font-bold text-rose">
                     {formatPercent(p.pplPercent)}
                   </span>
                 </div>

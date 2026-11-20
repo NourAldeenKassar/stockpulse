@@ -2,7 +2,6 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
-  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcrypt';
@@ -21,18 +20,19 @@ export class AuthService {
         'JWT_SECRET and JWT_REFRESH_SECRET must be set in environment',
       );
     }
+    if (secret.length < 32 || refreshSecret.length < 32) {
+      throw new Error(
+        'JWT_SECRET and JWT_REFRESH_SECRET must be at least 32 characters',
+      );
+    }
+    if (secret === refreshSecret) {
+      throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must differ');
+    }
     this.jwtSecret = secret;
     this.jwtRefreshSecret = refreshSecret;
   }
 
   async register(email: string, password: string) {
-    if (!email || !email.includes('@')) {
-      throw new BadRequestException('Valid email is required');
-    }
-    if (!password || password.length < 6) {
-      throw new BadRequestException('Password must be at least 6 characters');
-    }
-
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new ConflictException('Email already registered');

@@ -8,6 +8,10 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CryptoService } from '../crypto/crypto.service.js';
 import { Trading212Service } from '../trading212/trading212.service.js';
+import { Trading212ApiError } from '../trading212/trading212.error.js';
+import { decryptAccountCredentials } from './account-credentials.js';
+import type { Trading212Credentials } from './account-credentials.js';
+import type { AccountSummary } from '../trading212/trading212.types.js';
 
 @Injectable()
 export class AccountService {
@@ -25,19 +29,17 @@ export class AccountService {
     apiSecret: string,
     label?: string,
   ) {
-    let summary;
+    let summary: AccountSummary;
     try {
       summary = await this.trading212.getAccountSummary(apiKey, apiSecret);
-    } catch (err: any) {
-      const msg = err?.message || '';
-      if (msg.includes('401')) {
+    } catch (err) {
+      if (err instanceof Trading212ApiError && err.isAuthFailure) {
         throw new BadRequestException(
           'Invalid credentials — Trading212 rejected the API key/secret',
         );
       }
-      throw new BadRequestException(
-        `Could not connect to Trading212: ${msg}`,
-      );
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new BadRequestException(`Could not connect to Trading212: ${msg}`);
     }
 
     if (summary.totalValue === undefined) {
@@ -95,7 +97,12 @@ export class AccountService {
     const account = await this.getOwnAccount(userId, accountId);
     return this.prisma.tradingAccount.update({
       where: { id: account.id },
-      data,
+      data: {
+        ...(data.label !== undefined && { label: data.label }),
+        ...(data.snapshotIntervalMin !== undefined && {
+          snapshotIntervalMin: data.snapshotIntervalMin,
+        }),
+      },
       select: {
         id: true,
         label: true,
@@ -127,22 +134,21 @@ export class AccountService {
     return this.trading212.getPositions(apiKey, apiSecret);
   }
 
+  /**
+   * Throws unless the account exists and belongs to the user. Callers that only
+   * need the ownership check should use this rather than decryptCredentials,
+   * which does two AES decryptions purely as a side effect.
+   */
+  async assertOwnership(userId: string, accountId: string): Promise<void> {
+    await this.getOwnAccount(userId, accountId);
+  }
+
   async decryptCredentials(
     userId: string,
     accountId: string,
-  ): Promise<{ apiKey: string; apiSecret: string }> {
+  ): Promise<Trading212Credentials> {
     const account = await this.getOwnAccount(userId, accountId);
-    const apiKey = this.crypto.decrypt(
-      account.apiKeyEncrypted,
-      account.encryptionIv,
-      account.encryptionTag,
-    );
-    const apiSecret = this.crypto.decrypt(
-      account.apiSecretEncrypted,
-      account.secretEncryptionIv,
-      account.secretEncryptionTag,
-    );
-    return { apiKey, apiSecret };
+    return decryptAccountCredentials(this.crypto, account);
   }
 
   private async getOwnAccount(userId: string, accountId: string) {

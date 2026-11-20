@@ -14,41 +14,47 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix && prettier --write \"{src,apps,libs,test}/**/*.ts\"",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/common": "^12.5.1",
+    "@nestjs/core": "^12.5.1",
+    "@nestjs/platform-express": "^12.5.1",
     "@nestjs/schedule": "^12.0.0",
-    "@prisma/client": "^6.19.2",
+    "@nestjs/throttler": "^6.8.0",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "bcrypt": "^6.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "dotenv": "^18.0.10",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
-    "prisma": "^6.19.2",
+    "prisma": "^7.10.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
-    "@eslint/js": "^9.18.0",
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.1",
-    "@types/bcrypt": "^5.0.2",
+    "@eslint/js": "^10.0.1",
+    "@nestjs/cli": "^12.0.13",
+    "@nestjs/schematics": "^12.0.13",
+    "@nestjs/testing": "^12.5.1",
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.10.7",
-    "@types/supertest": "^6.0.2",
-    "concurrently": "^9.2.1",
-    "eslint": "^9.18.0",
+    "@types/supertest": "^7.2.1",
+    "concurrently": "^10.0.7",
+    "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
-    "globals": "^16.0.0",
+    "globals": "^17.14.0",
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
@@ -57,8 +63,8 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.73.0"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -68,13 +74,31 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "useESM": true,
+          "tsconfig": {
+            "module": "esnext",
+            "moduleResolution": "bundler"
+          }
+        }
+      ]
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "overrides": {
+    "effect": "^3.22.5"
   }
 }

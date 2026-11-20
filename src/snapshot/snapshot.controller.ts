@@ -1,14 +1,8 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
 import { SnapshotService } from './snapshot.service.js';
 import { AuthGuard } from '../auth/auth.guard.js';
+import { CurrentUser } from '../auth/current-user.decorator.js';
+import type { AuthenticatedUser } from '../auth/current-user.decorator.js';
 import { AccountService } from '../account/account.service.js';
 
 @Controller('accounts/:accountId/snapshots')
@@ -21,24 +15,30 @@ export class SnapshotController {
 
   @Get()
   async history(
-    @Req() req: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('accountId') accountId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
   ) {
-    await this.accountService.decryptCredentials(req.user.id, accountId);
+    await this.accountService.assertOwnership(user.id, accountId);
     return this.snapshotService.getHistory(accountId, from, to);
   }
 
   @Get('latest')
-  async latest(@Req() req: any, @Param('accountId') accountId: string) {
-    await this.accountService.decryptCredentials(req.user.id, accountId);
+  async latest(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('accountId') accountId: string,
+  ) {
+    await this.accountService.assertOwnership(user.id, accountId);
     return this.snapshotService.getLatest(accountId);
   }
 
   @Post()
-  async trigger(@Req() req: any, @Param('accountId') accountId: string) {
-    await this.accountService.decryptCredentials(req.user.id, accountId);
+  async trigger(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('accountId') accountId: string,
+  ) {
+    await this.accountService.assertOwnership(user.id, accountId);
     await this.snapshotService.takeSnapshot(accountId);
     return { ok: true };
   }

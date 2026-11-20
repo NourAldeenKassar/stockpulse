@@ -1,4 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { createHash } from 'crypto';
+import { RateLimiter } from '../common/rate-limiter.js';
+import { TtlCache } from '../common/ttl-cache.js';
+import type { RateLimitConfig } from '../common/rate-limiter.js';
+import { Trading212ApiError } from './trading212.error.js';
 import type {
   AccountSummary,
   Position,
@@ -7,11 +12,6 @@ import type {
   HistoricalOrder,
   PaginatedResponse,
 } from './trading212.types.js';
-
-interface RateLimitConfig {
-  maxCalls: number;
-  windowMs: number;
-}
 
 const RATE_LIMITS: Record<string, RateLimitConfig> = {
   accountSummary: { maxCalls: 1, windowMs: 5000 },
@@ -22,11 +22,24 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   instruments: { maxCalls: 1, windowMs: 50000 },
 };
 
+const MAX_ATTEMPTS = 3;
+
+/**
+ * Just under each endpoint's own limit, so a page reload is served from cache
+ * rather than queueing behind the rate limiter. Live prices still refresh
+ * about as often as Trading212 itself allows.
+ */
+const CACHE_TTL_MS: Record<string, number> = {
+  accountSummary: 5000,
+  positions: 2000,
+};
+
 @Injectable()
 export class Trading212Service {
   private readonly logger = new Logger(Trading212Service.name);
   private readonly baseUrl: string;
-  private readonly callTimestamps = new Map<string, number[]>();
+  private readonly limiter = new RateLimiter();
+  private readonly cache = new TtlCache();
 
   constructor() {
     this.baseUrl =
@@ -40,25 +53,52 @@ export class Trading212Service {
     return `Basic ${credentials}`;
   }
 
+  /**
+   * Trading212 applies its limits per account, so the limiter must key on the
+   * credentials as well as the endpoint. A shared key would make every user
+   * contend for one budget.
+   */
+  private rateLimitKey(apiKey: string, endpoint: string): string {
+    const account = createHash('sha256')
+      .update(apiKey)
+      .digest('hex')
+      .slice(0, 16);
+    return `${account}:${endpoint}`;
+  }
+
   async getAccountSummary(
     apiKey: string,
     apiSecret: string,
   ): Promise<AccountSummary> {
-    return this.request<AccountSummary>(
-      apiKey,
-      apiSecret,
-      '/api/v0/equity/account/summary',
-      'accountSummary',
+    return this.cached('accountSummary', apiKey, () =>
+      this.request<AccountSummary>(
+        apiKey,
+        apiSecret,
+        '/api/v0/equity/account/summary',
+        'accountSummary',
+      ),
     );
   }
 
   async getPositions(apiKey: string, apiSecret: string): Promise<Position[]> {
-    return this.request<Position[]>(
-      apiKey,
-      apiSecret,
-      '/api/v0/equity/positions',
-      'positions',
+    return this.cached('positions', apiKey, () =>
+      this.request<Position[]>(
+        apiKey,
+        apiSecret,
+        '/api/v0/equity/positions',
+        'positions',
+      ),
     );
+  }
+
+  private cached<T>(
+    endpoint: string,
+    apiKey: string,
+    load: () => Promise<T>,
+  ): Promise<T> {
+    const ttl = CACHE_TTL_MS[endpoint];
+    if (!ttl) return load();
+    return this.cache.getOrLoad(this.rateLimitKey(apiKey, endpoint), ttl, load);
   }
 
   async getDividends(apiKey: string, apiSecret: string): Promise<Dividend[]> {
@@ -98,18 +138,15 @@ export class Trading212Service {
     apiKey: string,
     apiSecret: string,
     path: string,
-    rateLimitKey: string,
+    endpoint: string,
   ): Promise<T[]> {
     const all: T[] = [];
     let currentPath: string | null = `${path}?limit=50`;
 
     while (currentPath) {
-      const page = await this.request<PaginatedResponse<T>>(
-        apiKey,
-        apiSecret,
-        currentPath,
-        rateLimitKey,
-      );
+      const page: PaginatedResponse<T> = await this.request<
+        PaginatedResponse<T>
+      >(apiKey, apiSecret, currentPath, endpoint);
       all.push(...page.items);
       currentPath = page.nextPagePath || null;
     }
@@ -121,52 +158,35 @@ export class Trading212Service {
     apiKey: string,
     apiSecret: string,
     path: string,
-    rateLimitKey: string,
+    endpoint: string,
     attempt = 1,
   ): Promise<T> {
-    await this.waitForRateLimit(rateLimitKey);
+    const config = RATE_LIMITS[endpoint];
+    if (config) {
+      await this.limiter.acquire(this.rateLimitKey(apiKey, endpoint), config);
+    }
 
     const url = path.startsWith('http') ? path : `${this.baseUrl}${path}`;
     const res = await fetch(url, {
       headers: { Authorization: this.buildAuthHeader(apiKey, apiSecret) },
     });
 
-    if (res.status === 429 || (res.status >= 500 && attempt < 3)) {
+    const retryable = res.status === 429 || res.status >= 500;
+    if (retryable && attempt < MAX_ATTEMPTS) {
       const delay = Math.pow(2, attempt) * 1000;
       this.logger.warn(
         `T212 ${res.status} on ${path}, retrying in ${delay}ms (attempt ${attempt})`,
       );
       await new Promise((r) => setTimeout(r, delay));
-      return this.request<T>(apiKey, apiSecret, path, rateLimitKey, attempt + 1);
+      return this.request<T>(apiKey, apiSecret, path, endpoint, attempt + 1);
     }
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      this.logger.error(
-        `T212 API ${res.status} on ${path}: ${body}`,
-      );
-      throw new Error(`Trading212 API error ${res.status}: ${body}`);
+      this.logger.error(`T212 API ${res.status} on ${path}: ${body}`);
+      throw new Trading212ApiError(res.status, path, body);
     }
 
     return res.json() as Promise<T>;
-  }
-
-  private async waitForRateLimit(key: string): Promise<void> {
-    const config = RATE_LIMITS[key];
-    if (!config) return;
-
-    const timestamps = this.callTimestamps.get(key) || [];
-    const now = Date.now();
-    const windowStart = now - config.windowMs;
-    const recent = timestamps.filter((t) => t > windowStart);
-
-    if (recent.length >= config.maxCalls) {
-      const oldest = recent[0];
-      const waitMs = oldest + config.windowMs - now + 100;
-      await new Promise((r) => setTimeout(r, waitMs));
-    }
-
-    recent.push(Date.now());
-    this.callTimestamps.set(key, recent);
   }
 }

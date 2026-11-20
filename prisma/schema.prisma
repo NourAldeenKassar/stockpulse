@@ -1,11 +1,9 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -16,6 +14,16 @@ model User {
   llmGatewayKeyEncrypted  String?
   llmGatewayKeyIv         String?
   llmGatewayKeyTag        String?
+  finnhubKeyEncrypted     String?
+  finnhubKeyIv            String?
+  finnhubKeyTag           String?
+  /// Optional second gateway for the paid tier used by per-stock analysis.
+  /// Kept separate from the cheap one so its usage and cost can be tracked and
+  /// revoked independently.
+  llmPremiumGatewayUrl    String?
+  llmPremiumKeyEncrypted  String?
+  llmPremiumKeyIv         String?
+  llmPremiumKeyTag        String?
   createdAt               DateTime         @default(now())
   accounts                TradingAccount[]
 
@@ -39,6 +47,7 @@ model TradingAccount {
   user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   snapshots           PortfolioSnapshot[]
   insights            InsightRecord[]
+  stockAnalyses       StockAnalysis[]
 
   @@map("trading_accounts")
 }
@@ -68,4 +77,27 @@ model PortfolioSnapshot {
 
   @@index([accountId, takenAt])
   @@map("portfolio_snapshots")
+}
+
+/// A cached per-stock analysis: real analyst consensus plus the AI narrative
+/// written around it. Cached so reopening a stock does not re-bill a paid
+/// provider.
+model StockAnalysis {
+  id        String         @id @default(uuid())
+  accountId String
+  account   TradingAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// Trading212 ticker, e.g. AAPL_US_EQ
+  ticker    String
+  /// Resolved market-data symbol, e.g. AAPL. Null when it could not be mapped.
+  symbol    String?
+  /// Finnhub recommendation trends. Null when no symbol could be resolved.
+  consensus Json?
+  /// The model-written narrative.
+  analysis  Json
+  provider  String
+  model     String
+  createdAt DateTime       @default(now())
+
+  @@index([accountId, ticker, createdAt])
+  @@map("stock_analyses")
 }

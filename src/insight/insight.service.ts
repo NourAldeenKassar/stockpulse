@@ -1,15 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AccountService } from '../account/account.service.js';
 import { Trading212Service } from '../trading212/trading212.service.js';
 import { LlmService } from '../llm/llm.service.js';
-import type { Position } from '../trading212/trading212.types.js';
+import { parseJsonFromLlm } from '../llm/llm-json.js';
+import { buildPortfolioInsightPrompt } from './portfolio-insight.prompt.js';
 
 export interface Insight {
   title: string;
   body: string;
   type: 'warning' | 'info' | 'suggestion';
   severity: 'low' | 'medium' | 'high';
+}
+
+function isValidInsight(value: unknown): value is Insight {
+  const i = value as Partial<Insight> | null;
+  return Boolean(i && i.title && i.body && i.type && i.severity);
 }
 
 @Injectable()
@@ -37,75 +44,33 @@ export class InsightService {
       this.trading212.getPositions(apiKey, apiSecret),
     ]);
 
-    const totalInvested = summary.investments.totalCost;
-    const totalValue = summary.totalValue;
+    const prompt = buildPortfolioInsightPrompt(summary, positions);
+    // The whole-portfolio summary stays on the free tier. Only the per-stock
+    // analysis is worth routing to a paid provider.
+    const result = await this.llm.generate(userId, prompt, { freeOnly: true });
 
-    const positionsSummary = positions
-      .map((p: Position) => {
-        const allocation =
-          totalValue > 0
-            ? ((p.walletImpact.currentValue / totalValue) * 100).toFixed(1)
-            : '0';
-        return `- ${p.instrument.name} (${p.instrument.ticker}): ${allocation}% allocation, ${p.walletImpact.currentValue.toFixed(2)} ${p.walletImpact.currency} value, P&L: ${p.walletImpact.unrealizedProfitLoss.toFixed(2)}`;
-      })
-      .join('\n');
-
-    const systemPrompt = `You are a portfolio analysis assistant. You analyze investment portfolios and provide actionable, concise insights. You MUST respond with ONLY a valid JSON array. No markdown, no code fences, no text before or after the JSON.`;
-
-    const userPrompt = `Analyze this Trading212 portfolio and provide 3-5 insights:
-
-Portfolio Summary:
-- Total Value: ${totalValue.toFixed(2)} ${summary.currency}
-- Cash Available: ${summary.cash.availableToTrade.toFixed(2)} ${summary.currency}
-- Total Invested: ${totalInvested.toFixed(2)} ${summary.currency}
-- Unrealized P&L: ${summary.investments.unrealizedProfitLoss.toFixed(2)} ${summary.currency}
-- Realized P&L: ${summary.investments.realizedProfitLoss.toFixed(2)} ${summary.currency}
-- Number of positions: ${positions.length}
-
-Positions:
-${positionsSummary}
-
-Provide insights covering any of these:
-1. Concentration risk (if any single position is >30% of portfolio)
-2. Diversification analysis (sectors, geography, asset types)
-3. Position sizing observations
-4. Cash allocation commentary
-5. P&L observations and suggestions
-6. Any notable patterns or risks
-
-Return a JSON array with this exact format:
-[{"title":"Short title","body":"Detailed explanation in 1-2 sentences","type":"warning|info|suggestion","severity":"low|medium|high"}]`;
-
-    const raw = await this.llm.generate(userId, systemPrompt, userPrompt);
-
-    if (!raw) {
-      return [];
-    }
-
-    const content = raw
-      .replace(/^```(?:json)?\s*\n?/i, '')
-      .replace(/\n?```\s*$/i, '')
-      .trim();
-
-    try {
-      const insights = (JSON.parse(content) as Insight[]).filter(
-        (i) => i.title && i.body && i.type && i.severity,
-      );
-
-      if (insights.length > 0) {
-        await this.prisma.insightRecord.create({
-          data: {
-            accountId,
-            insights: insights as any,
-          },
-        });
+    const parsed = parseJsonFromLlm<unknown[]>(result?.text ?? null);
+    if (!Array.isArray(parsed)) {
+      if (result?.text) {
+        this.logger.error(`Failed to parse LLM insights: ${result.text}`);
       }
-
-      return insights;
-    } catch (err) {
-      this.logger.error(`Failed to parse LLM insights: ${content}`);
       return [];
     }
+
+    const insights = parsed.filter(isValidInsight);
+    if (insights.length > 0) {
+      await this.persist(accountId, insights);
+    }
+    return insights;
+  }
+
+  private async persist(accountId: string, insights: Insight[]) {
+    await this.prisma.insightRecord.create({
+      data: {
+        accountId,
+        insights: insights as unknown as Prisma.InputJsonValue,
+      },
+    });
   }
 
   async getLatest(accountId: string): Promise<Insight[]> {

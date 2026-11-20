@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import type { Snapshot } from '@/lib/types';
 import { formatCurrencyShort } from '@/lib/format';
+import { CAPTION_PX } from '@/lib/type-scale';
 import { usePrivacy } from '@/lib/privacy';
 
 const RANGES = [
@@ -31,8 +32,8 @@ function formatDate(dateStr: string): string {
 function CustomTooltip({ active, payload, label, hidden }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="glass-card rounded-lg border border-border-glow px-4 py-3">
-      <p className="text-xs text-text-muted">
+    <div className="surface-prominent rounded-lg px-4 py-3">
+      <p className="text-caption text-text-muted">
         {new Date(label).toLocaleDateString('en-US', {
           weekday: 'short',
           month: 'short',
@@ -40,7 +41,9 @@ function CustomTooltip({ active, payload, label, hidden }: any) {
           year: 'numeric',
         })}
       </p>
-      <p className={`mt-1 font-heading text-lg font-bold text-cyan ${hidden ? 'select-none blur-md' : ''}`}>
+      <p
+        className={`mt-1 font-heading text-heading font-bold text-cyan ${hidden ? 'select-none blur-md' : ''}`}
+      >
         {formatCurrencyShort(payload[0].value)}
       </p>
     </div>
@@ -77,7 +80,7 @@ export default function PortfolioChart({
 
   if (data.length === 0) {
     return (
-      <div className="glass-card flex h-80 items-center justify-center rounded-xl p-6">
+      <div className="surface flex h-80 items-center justify-center rounded-xl p-5 sm:p-6">
         <p className="text-text-muted">
           No snapshot data yet. Snapshots are taken automatically based on your
           configured interval.
@@ -87,15 +90,17 @@ export default function PortfolioChart({
   }
 
   return (
-    <div className="glass-card rounded-xl p-6">
+    <div className="surface rounded-xl p-5 sm:p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="font-heading text-lg font-semibold">Portfolio Value</h2>
-        <div className="flex gap-1 rounded-lg bg-bg-card p-1">
+        <h2 className="font-heading text-heading font-semibold">
+          Portfolio Value
+        </h2>
+        <div className="flex flex-wrap gap-1 rounded-lg bg-bg-card p-1">
           {RANGES.map((r) => (
             <button
               key={r.label}
               onClick={() => setRange(r.label)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-md px-2.5 py-1.5 text-caption font-medium transition-colors sm:px-3 ${
                 range === r.label
                   ? 'bg-cyan/15 text-cyan'
                   : 'text-text-muted hover:text-text-secondary'
@@ -124,15 +129,17 @@ export default function PortfolioChart({
             dataKey="date"
             tickFormatter={formatDate}
             stroke="rgba(255,255,255,0.1)"
-            tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
+            tick={{ fill: 'var(--color-text-muted)', fontSize: CAPTION_PX }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
             domain={[minValue, maxValue]}
-            tickFormatter={(v: number) => hidden ? '***' : formatCurrencyShort(v)}
+            tickFormatter={(v: number) =>
+              hidden ? '***' : formatCurrencyShort(v)
+            }
             stroke="rgba(255,255,255,0.1)"
-            tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
+            tick={{ fill: 'var(--color-text-muted)', fontSize: CAPTION_PX }}
             tickLine={false}
             axisLine={false}
             width={80}

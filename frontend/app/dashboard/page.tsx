@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DndContext,
@@ -17,73 +17,32 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import * as api from '@/lib/api';
-import type {
-  TradingAccount,
-  AccountSummary,
-  Position,
-  Snapshot,
-} from '@/lib/types';
-import type { LlmSettings } from '@/lib/api';
 import SortableSection from '@/components/sortable-section';
-import PortfolioSummary from '@/components/portfolio-summary';
-import StatsRibbon from '@/components/stats-ribbon';
-import InsightCards from '@/components/insight-cards';
-import HealthScore from '@/components/health-score';
-import PositionHeatmap from '@/components/position-heatmap';
-import PortfolioChart from '@/components/portfolio-chart';
-import AllocationChart from '@/components/allocation-chart';
-import CurrencyExposure from '@/components/currency-exposure';
-import TopMovers from '@/components/top-movers';
-import WhatIfSimulator from '@/components/what-if-simulator';
-import PositionsTable from '@/components/positions-table';
-const STORAGE_KEY = 'dashboard-section-order';
-
-const DEFAULT_ORDER = [
-  'summary',
-  'stats',
-  'health-insights',
-  'heatmap',
-  'chart',
-  'allocation-row',
-  'simulator',
-  'positions',
-];
-
-function loadOrder(): string[] {
-  if (typeof window === 'undefined') return DEFAULT_ORDER;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored) as string[];
-      const valid = parsed.filter((id) => DEFAULT_ORDER.includes(id));
-      const missing = DEFAULT_ORDER.filter((id) => !valid.includes(id));
-      return [...valid, ...missing];
-    }
-  } catch {}
-  return DEFAULT_ORDER;
-}
-
-function saveOrder(order: string[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(order));
-}
+import { buildSections } from '@/components/dashboard-sections';
+import { Button, Card, Spinner } from '@/components/ui';
+import { useDashboardData } from '@/lib/use-dashboard-data';
+import { SECTION_LABELS, useSectionOrder } from '@/lib/use-section-order';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [accounts, setAccounts] = useState<TradingAccount[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<string>('');
-  const [summary, setSummary] = useState<AccountSummary | null>(null);
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [llmSettings, setLlmSettings] = useState<LlmSettings | null>(null);
-  const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_ORDER);
-  const [editMode, setEditMode] = useState(false);
+  const {
+    accounts,
+    selectedAccount,
+    selectAccount,
+    summary,
+    positions,
+    snapshots,
+    llmSettings,
+    overview,
+    overviewLoading,
+    refreshOverview,
+    loading,
+    error,
+    asOf,
+  } = useDashboardData();
 
-  useEffect(() => {
-    setSectionOrder(loadOrder());
-  }, []);
+  const { order, setOrder, reset } = useSectionOrder();
+  const [editMode, setEditMode] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -92,146 +51,49 @@ export default function DashboardPage() {
     }),
   );
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      setSectionOrder((prev) => {
-        const oldIndex = prev.indexOf(active.id as string);
-        const newIndex = prev.indexOf(over.id as string);
-        const newOrder = arrayMove(prev, oldIndex, newIndex);
-        saveOrder(newOrder);
-        return newOrder;
-      });
-    }
-  }
-
-  function handleReset() {
-    setSectionOrder(DEFAULT_ORDER);
-    saveOrder(DEFAULT_ORDER);
-  }
-
-  useEffect(() => {
-    api.getLlmSettings().then(setLlmSettings).catch(() => {});
-    api
-      .listAccounts()
-      .then((accs) => {
-        setAccounts(accs);
-        if (accs.length > 0) {
-          setSelectedAccount(accs[0].id);
-        } else {
-          setLoading(false);
-        }
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
-  const loadData = useCallback(async (accountId: string) => {
-    setLoading(true);
-    setError('');
-    try {
-      const [s, p, snaps] = await Promise.all([
-        api.getAccountSummary(accountId),
-        api.getAccountPositions(accountId),
-        api.getSnapshots(accountId),
-      ]);
-      setSummary(s);
-      setPositions(p);
-      setSnapshots(snaps);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load portfolio data');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const refreshLive = useCallback(async (accountId: string) => {
-    try {
-      const [s, p] = await Promise.all([
-        api.getAccountSummary(accountId),
-        api.getAccountPositions(accountId),
-      ]);
-      setSummary(s);
-      setPositions(p);
-    } catch {
-      // silent — don't show errors on background refresh
-    }
-  }, []);
-
-  useEffect(() => {
-    if (selectedAccount) {
-      void loadData(selectedAccount);
-      const interval = setInterval(() => {
-        void refreshLive(selectedAccount);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [selectedAccount, loadData]);
-
-  const sectionMap: Record<string, React.ReactNode> = useMemo(
-    () => ({
-      summary: summary ? <PortfolioSummary summary={summary} /> : null,
-      stats:
-        summary && positions.length > 0 ? (
-          <StatsRibbon summary={summary} positions={positions} />
-        ) : null,
-      'health-insights':
-        summary && positions.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <HealthScore summary={summary} positions={positions} />
-            <InsightCards
-              accountId={selectedAccount}
-              llmSettings={llmSettings}
-            />
-          </div>
-        ) : null,
-      heatmap:
-        positions.length > 0 ? (
-          <PositionHeatmap positions={positions} />
-        ) : null,
-      chart: <PortfolioChart snapshots={snapshots} />,
-      'allocation-row':
-        positions.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-            <div className="lg:col-span-2">
-              <AllocationChart positions={positions} />
-            </div>
-            <div className="lg:col-span-1">
-              <CurrencyExposure positions={positions} />
-            </div>
-            <div className="lg:col-span-2">
-              <TopMovers positions={positions} />
-            </div>
-          </div>
-        ) : null,
-      simulator:
-        positions.length > 0 ? (
-          <WhatIfSimulator positions={positions} />
-        ) : null,
-      positions:
-        positions.length > 0 ? (
-          <PositionsTable positions={positions} />
-        ) : null,
-    }),
-    [summary, positions, snapshots, selectedAccount, llmSettings],
+  const sections = useMemo(
+    () =>
+      buildSections({
+        summary,
+        positions,
+        snapshots,
+        selectedAccount,
+        llmSettings,
+        overview,
+        overviewLoading,
+        onRefreshOverview: refreshOverview,
+        asOf,
+      }),
+    [
+      summary,
+      positions,
+      snapshots,
+      selectedAccount,
+      llmSettings,
+      overview,
+      overviewLoading,
+      refreshOverview,
+      asOf,
+    ],
   );
 
-  const SECTION_LABELS: Record<string, string> = {
-    summary: 'Summary Cards',
-    stats: 'Stats Ribbon',
-    'health-insights': 'Health + Insights',
-    heatmap: 'Heatmap',
-    chart: 'Portfolio Chart',
-    'allocation-row': 'Allocation / Currency / Movers',
-    simulator: 'What-If Simulator',
-    positions: 'Positions Table',
-  };
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = order.indexOf(active.id as string);
+    const newIndex = order.indexOf(over.id as string);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    setOrder(arrayMove(order, oldIndex, newIndex));
+  }
 
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-cyan border-t-transparent" />
-          <p className="text-sm text-text-muted">Loading portfolio...</p>
+          <Spinner size="lg" className="mx-auto mb-4" />
+          <p className="text-body text-text-muted">Loading portfolio...</p>
         </div>
       </div>
     );
@@ -240,7 +102,7 @@ export default function DashboardPage() {
   if (accounts.length === 0) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="glass-card glow-cyan max-w-md rounded-2xl p-8 text-center">
+        <Card glow="cyan" className="max-w-md p-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-cyan/10">
             <svg
               width="28"
@@ -256,20 +118,17 @@ export default function DashboardPage() {
               <polyline points="16,7 22,7 22,13" />
             </svg>
           </div>
-          <h2 className="mb-2 font-heading text-xl font-bold">
+          <h2 className="mb-2 font-heading text-heading font-bold">
             Connect Your Portfolio
           </h2>
-          <p className="mb-6 text-sm text-text-secondary">
+          <p className="mb-6 text-body text-text-secondary">
             Connect your Trading212 account to start tracking your portfolio
             performance.
           </p>
-          <button
-            onClick={() => router.push('/settings')}
-            className="rounded-lg bg-gradient-to-r from-cyan to-blue-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan/30"
-          >
+          <Button size="lg" onClick={() => router.push('/settings')}>
             Go to Settings
-          </button>
-        </div>
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -280,13 +139,17 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           {accounts.length > 1 && (
             <>
-              <label className="text-sm font-medium text-text-secondary">
+              <label
+                htmlFor="account-select"
+                className="text-body font-medium text-text-secondary"
+              >
                 Account:
               </label>
               <select
+                id="account-select"
                 value={selectedAccount}
-                onChange={(e) => setSelectedAccount(e.target.value)}
-                className="rounded-lg px-3 py-2 text-sm"
+                onChange={(e) => selectAccount(e.target.value)}
+                className="rounded-lg px-3 py-2 text-body"
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -299,28 +162,27 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           {editMode && (
-            <button
-              onClick={handleReset}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:text-text-secondary"
-            >
+            <Button variant="ghost" size="sm" onClick={reset}>
               Reset Order
-            </button>
+            </Button>
           )}
-          <button
+          <Button
+            variant={editMode ? 'subtle' : 'ghost'}
+            size="sm"
             onClick={() => setEditMode(!editMode)}
-            className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all ${
+            className={
               editMode
-                ? 'bg-cyan/15 text-cyan ring-1 ring-cyan/30'
+                ? 'ring-1 ring-cyan/30'
                 : 'bg-bg-card text-text-secondary hover:text-text-primary'
-            }`}
+            }
           >
             {editMode ? 'Done' : 'Customize Layout'}
-          </button>
+          </Button>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-sm text-rose">
+        <div className="rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-body text-rose">
           {error}
         </div>
       )}
@@ -330,13 +192,10 @@ export default function DashboardPage() {
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext
-          items={sectionOrder}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={order} strategy={verticalListSortingStrategy}>
           <div className={`space-y-6 ${editMode ? 'pl-10' : ''}`}>
-            {sectionOrder.map((sectionId) => {
-              const content = sectionMap[sectionId];
+            {order.map((sectionId) => {
+              const content = sections[sectionId];
               if (!content) return null;
               return (
                 <SortableSection
@@ -345,7 +204,7 @@ export default function DashboardPage() {
                   editMode={editMode}
                 >
                   {editMode && (
-                    <div className="pointer-events-none absolute -top-2 left-3 z-10 rounded bg-cyan/20 px-2 py-0.5 text-[10px] font-semibold text-cyan">
+                    <div className="pointer-events-none absolute -top-2 left-3 z-10 rounded bg-cyan/20 px-2 py-0.5 text-caption font-semibold text-cyan">
                       {SECTION_LABELS[sectionId] || sectionId}
                     </div>
                   )}

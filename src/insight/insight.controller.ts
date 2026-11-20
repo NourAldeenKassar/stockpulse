@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseGuards } from '@nestjs/common';
 import { InsightService } from './insight.service.js';
 import { AuthGuard } from '../auth/auth.guard.js';
+import { CurrentUser } from '../auth/current-user.decorator.js';
+import type { AuthenticatedUser } from '../auth/current-user.decorator.js';
 import { AccountService } from '../account/account.service.js';
 
 @Controller('accounts/:accountId/insights')
@@ -12,13 +14,19 @@ export class InsightController {
   ) {}
 
   @Get()
-  async getLatest(@Req() req: any, @Param('accountId') accountId: string) {
-    await this.accountService.decryptCredentials(req.user.id, accountId);
+  async getLatest(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('accountId') accountId: string,
+  ) {
+    await this.accountService.assertOwnership(user.id, accountId);
     return this.insightService.getLatest(accountId);
   }
 
   @Post('generate')
-  generate(@Req() req: any, @Param('accountId') accountId: string) {
-    return this.insightService.generateInsights(req.user.id, accountId);
+  generate(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('accountId') accountId: string,
+  ) {
+    return this.insightService.generateInsights(user.id, accountId);
   }
 }

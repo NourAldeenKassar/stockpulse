@@ -1,15 +1,18 @@
 'use client';
 
 import type { Position, AccountSummary } from '@/lib/types';
+import { averageHoldingDays } from '@/lib/metrics';
 import { formatCurrency } from '@/lib/format';
 import { Blur } from '@/lib/privacy';
 
 interface Props {
   summary: AccountSummary;
   positions: Position[];
+  /** When the data was fetched. Avoids calling Date.now() during render. */
+  asOf: number;
 }
 
-export default function StatsRibbon({ summary, positions }: Props) {
+export default function StatsRibbon({ summary, positions, asOf }: Props) {
   const totalPositions = positions.length;
 
   const best = positions.reduce(
@@ -32,18 +35,7 @@ export default function StatsRibbon({ summary, positions }: Props) {
 
   const currencies = new Set(positions.map((p) => p.instrument.currency));
 
-  const avgHoldingDays =
-    positions.length > 0
-      ? Math.round(
-          positions.reduce((sum, p) => {
-            const days = Math.floor(
-              (Date.now() - new Date(p.createdAt).getTime()) /
-                (1000 * 60 * 60 * 24),
-            );
-            return sum + days;
-          }, 0) / positions.length,
-        )
-      : 0;
+  const avgHoldingDays = averageHoldingDays(positions, asOf);
 
   const stats = [
     {
@@ -67,24 +59,24 @@ export default function StatsRibbon({ summary, positions }: Props) {
     {
       label: 'Best',
       value: best ? best.instrument.name.split(' ')[0] : '-',
-      sub: best
-        ? formatCurrency(best.walletImpact.unrealizedProfitLoss)
-        : '',
+      sub: best ? formatCurrency(best.walletImpact.unrealizedProfitLoss) : '',
       color: 'text-emerald',
       sensitive: true,
     },
     {
       label: 'Worst',
       value: worst ? worst.instrument.name.split(' ')[0] : '-',
-      sub: worst
-        ? formatCurrency(worst.walletImpact.unrealizedProfitLoss)
-        : '',
+      sub: worst ? formatCurrency(worst.walletImpact.unrealizedProfitLoss) : '',
       color: 'text-rose',
       sensitive: true,
     },
     {
       label: 'Realized P&L',
-      value: formatCurrency(summary.investments.realizedProfitLoss, 'EUR', true),
+      value: formatCurrency(
+        summary.investments.realizedProfitLoss,
+        'EUR',
+        true,
+      ),
       color:
         summary.investments.realizedProfitLoss >= 0
           ? 'text-emerald'
@@ -94,15 +86,15 @@ export default function StatsRibbon({ summary, positions }: Props) {
   ];
 
   return (
-    <div className="glass-card flex flex-wrap items-center justify-between gap-4 rounded-xl px-6 py-3">
+    <div className="surface flex flex-wrap items-center justify-between gap-4 rounded-xl px-6 py-3">
       {stats.map((stat) => (
         <div key={stat.label} className="flex items-center gap-2">
-          <span className="text-xs text-text-muted">{stat.label}</span>
-          <span className={`text-sm font-semibold ${stat.color}`}>
+          <span className="text-caption text-text-muted">{stat.label}</span>
+          <span className={`text-body font-semibold ${stat.color}`}>
             {stat.sensitive ? <Blur>{stat.value}</Blur> : stat.value}
           </span>
           {stat.sub && (
-            <span className={`text-xs ${stat.color}`}>
+            <span className={`text-caption ${stat.color}`}>
               {stat.sensitive ? <Blur>{stat.sub}</Blur> : stat.sub}
             </span>
           )}

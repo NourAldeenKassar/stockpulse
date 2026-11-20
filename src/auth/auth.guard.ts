@@ -1,26 +1,24 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, Injectable, UnauthorizedException } from '@nestjs/common';
+import type { ExecutionContext } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
+import type { AuthenticatedUser } from './current-user.decorator.js';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(private authService: AuthService) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers['authorization'] as string | undefined;
+    const request = context.switchToHttp().getRequest<{
+      headers: Record<string, string | undefined>;
+      user?: AuthenticatedUser;
+    }>();
+    const authHeader = request.headers['authorization'];
 
     if (!authHeader?.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing authorization header');
     }
 
-    const token = authHeader.slice(7);
-    const user = this.authService.verifyAccessToken(token);
-    request.user = user;
+    request.user = this.authService.verifyAccessToken(authHeader.slice(7));
     return true;
   }
 }

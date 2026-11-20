@@ -41,8 +41,8 @@ export default function CurrencyExposure({
   if (data.length === 0) return null;
 
   return (
-    <div className="glass-card rounded-xl p-6">
-      <h2 className="mb-4 font-heading text-lg font-semibold">
+    <div className="surface rounded-xl p-5 sm:p-6">
+      <h2 className="mb-4 font-heading text-heading font-semibold">
         Currency Exposure
       </h2>
 
@@ -67,13 +67,13 @@ export default function CurrencyExposure({
                 className="h-3 w-3 rounded-full"
                 style={{ backgroundColor: getColor(d.currency) }}
               />
-              <span className="text-sm font-medium">{d.currency}</span>
+              <span className="text-body font-medium">{d.currency}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-text-secondary">
+              <span className="text-body text-text-secondary">
                 <Blur>{formatCurrency(d.value)}</Blur>
               </span>
-              <span className="w-14 text-right text-sm font-semibold text-text-muted">
+              <span className="w-14 text-right text-body font-semibold text-text-muted">
                 {d.percent.toFixed(1)}%
               </span>
             </div>

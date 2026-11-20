@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { CryptoModule } from './crypto/crypto.module.js';
 import { AuthModule } from './auth/auth.module.js';
@@ -9,11 +11,16 @@ import { SnapshotModule } from './snapshot/snapshot.module.js';
 import { UserModule } from './user/user.module.js';
 import { LlmModule } from './llm/llm.module.js';
 import { InsightModule } from './insight/insight.module.js';
+import { MarketDataModule } from './marketdata/marketdata.module.js';
+import { Trading212ExceptionFilter } from './trading212/trading212-exception.filter.js';
 
 @Module({
   imports: [
     PrismaModule,
     ScheduleModule.forRoot(),
+    // The dashboard polls summary and positions every 5s, so the default
+    // ceiling is generous. Auth routes override it with a much tighter limit.
+    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 300 }]),
     CryptoModule,
     AuthModule,
     Trading212Module,
@@ -22,6 +29,11 @@ import { InsightModule } from './insight/insight.module.js';
     UserModule,
     LlmModule,
     InsightModule,
+    MarketDataModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_FILTER, useClass: Trading212ExceptionFilter },
   ],
 })
 export class AppModule {}

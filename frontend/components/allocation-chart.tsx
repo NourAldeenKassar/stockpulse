@@ -23,10 +23,20 @@ function CustomTooltip({ active, payload, hidden }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0];
   return (
-    <div style={{ background: '#1a1a2e', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 8, padding: '8px 12px' }}>
-      <p className="text-sm font-medium text-text-primary">{d.name}</p>
-      <p className="text-xs text-text-muted">
-        <span className={hidden ? 'select-none blur-md' : ''}>{formatCurrency(d.value)}</span> ({d.payload.percent.toFixed(1)}%)
+    <div
+      style={{
+        background: '#1a1a2e',
+        border: '1px solid rgba(0,212,255,0.2)',
+        borderRadius: 8,
+        padding: '8px 12px',
+      }}
+    >
+      <p className="text-body font-medium text-text-primary">{d.name}</p>
+      <p className="text-caption text-text-muted">
+        <span className={hidden ? 'select-none blur-md' : ''}>
+          {formatCurrency(d.value)}
+        </span>{' '}
+        ({d.payload.percent.toFixed(1)}%)
       </p>
     </div>
   );
@@ -48,9 +58,7 @@ export default function AllocationChart({
         name: p.instrument.name,
         value: p.walletImpact.currentValue,
         percent:
-          totalValue > 0
-            ? (p.walletImpact.currentValue / totalValue) * 100
-            : 0,
+          totalValue > 0 ? (p.walletImpact.currentValue / totalValue) * 100 : 0,
       }))
       .sort((a, b) => b.value - a.value);
 
@@ -68,15 +76,17 @@ export default function AllocationChart({
 
   if (positions.length === 0) {
     return (
-      <div className="glass-card flex h-full items-center justify-center rounded-xl p-6">
+      <div className="surface flex h-full items-center justify-center rounded-xl p-5 sm:p-6">
         <p className="text-text-muted">No positions</p>
       </div>
     );
   }
 
   return (
-    <div className="glass-card rounded-xl p-6">
-      <h2 className="mb-4 font-heading text-lg font-semibold">Allocation</h2>
+    <div className="surface rounded-xl p-5 sm:p-6">
+      <h2 className="mb-4 font-heading text-heading font-semibold">
+        Allocation
+      </h2>
       <div className="flex items-center gap-6">
         <div className="h-52 w-52 shrink-0">
           <ResponsiveContainer width="100%" height="100%">
@@ -106,7 +116,7 @@ export default function AllocationChart({
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: COLORS[i % COLORS.length] }}
               />
-              <span className="text-xs text-text-secondary">
+              <span className="text-caption text-text-secondary">
                 {item.name}{' '}
                 <span className="text-text-muted">
                   {item.percent.toFixed(1)}%

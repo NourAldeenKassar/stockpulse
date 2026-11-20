@@ -1,6 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
+export interface EncryptedField {
+  ciphertext: string;
+  iv: string;
+  tag: string;
+}
+
+/** The same shape as it comes back from Prisma, where the columns are nullable. */
+export type MaybeEncryptedField = {
+  [K in keyof EncryptedField]: string | null;
+};
+
 @Injectable()
 export class CryptoService {
   private readonly algorithm = 'aes-256-gcm';
@@ -16,7 +27,7 @@ export class CryptoService {
     this.key = Buffer.from(hex, 'hex');
   }
 
-  encrypt(plaintext: string): { ciphertext: string; iv: string; tag: string } {
+  encrypt(plaintext: string): EncryptedField {
     const iv = randomBytes(12);
     const cipher = createCipheriv(this.algorithm, this.key, iv);
 
@@ -44,5 +55,15 @@ export class CryptoService {
     decrypted += decipher.final('utf8');
 
     return decrypted;
+  }
+
+  decryptField(field: EncryptedField): string {
+    return this.decrypt(field.ciphertext, field.iv, field.tag);
+  }
+
+  /** Returns null unless all three parts of the field are present. */
+  tryDecryptField(field: MaybeEncryptedField): string | null {
+    if (!field.ciphertext || !field.iv || !field.tag) return null;
+    return this.decrypt(field.ciphertext, field.iv, field.tag);
   }
 }
