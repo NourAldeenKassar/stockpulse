@@ -36,6 +36,12 @@ export interface StockAnalysisResult {
   generatedAt: string | null;
 }
 
+/**
+ * Generous on purpose: reasoning models charge their reasoning against this
+ * limit and return nothing at all when it is exhausted.
+ */
+const ANALYSIS_TOKEN_BUDGET = 4000;
+
 function isNarrative(value: unknown): value is StockNarrative {
   const n = value as Partial<StockNarrative> | null;
   return Boolean(n && n.summary && n.consensusReading && n.positionNotes);
@@ -131,12 +137,16 @@ export class StockAnalysisService {
       portfolioValue,
     );
 
-    // Per-stock analysis is the one place worth paying for, so the gateway is
-    // allowed to route this to a paid provider.
+    // Per-stock analysis is the one place worth paying for, so it uses the
+    // premium credentials.
+    //
+    // The budget is well above what the answer needs: reasoning models count
+    // their reasoning against the same limit, and when it runs out they return
+    // an empty completion rather than a short one.
     const result = await this.llm.generate(userId, prompt, {
       freeOnly: false,
       tier: 'premium',
-      maxTokens: 900,
+      maxTokens: ANALYSIS_TOKEN_BUDGET,
     });
 
     if (!result) {
@@ -145,11 +155,26 @@ export class StockAnalysisService {
       );
     }
 
+    // An empty completion is a different failure from a malformed one, and
+    // calling it a parse error sends the reader looking in the wrong place.
+    // The usual cause is a reasoning model spending the whole budget before
+    // writing anything.
+    if (!result.text.trim()) {
+      this.logger.error(
+        `Empty completion from ${result.provider}/${result.model} for ${ticker}`,
+      );
+      throw new BadRequestException(
+        `${result.model} returned an empty response. If it is a reasoning model, it may have used the whole token budget before answering.`,
+      );
+    }
+
     const parsed = parseJsonFromLlm<unknown>(result.text);
     if (!isNarrative(parsed)) {
-      this.logger.error(`Failed to parse stock analysis: ${result.text}`);
+      this.logger.error(
+        `Unparseable analysis from ${result.provider}/${result.model}: ${result.text.slice(0, 500)}`,
+      );
       throw new BadRequestException(
-        'The model returned an unusable response. Try again.',
+        `${result.model} did not return the expected JSON. Try again, or use a different model.`,
       );
     }
 
