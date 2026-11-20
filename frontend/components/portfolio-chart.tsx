@@ -32,7 +32,7 @@ function formatDate(dateStr: string): string {
 function CustomTooltip({ active, payload, label, hidden }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="glass-card rounded-lg border border-border-glow px-4 py-3">
+    <div className="surface-prominent rounded-lg px-4 py-3">
       <p className="text-caption text-text-muted">
         {new Date(label).toLocaleDateString('en-US', {
           weekday: 'short',
@@ -80,7 +80,7 @@ export default function PortfolioChart({
 
   if (data.length === 0) {
     return (
-      <div className="glass-card flex h-80 items-center justify-center rounded-xl p-6">
+      <div className="surface flex h-80 items-center justify-center rounded-xl p-6">
         <p className="text-text-muted">
           No snapshot data yet. Snapshots are taken automatically based on your
           configured interval.
@@ -90,7 +90,7 @@ export default function PortfolioChart({
   }
 
   return (
-    <div className="glass-card rounded-xl p-6">
+    <div className="surface rounded-xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="font-heading text-heading font-semibold">
           Portfolio Value

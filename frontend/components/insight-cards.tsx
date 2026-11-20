@@ -115,7 +115,7 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
 
   if (!configured) {
     return (
-      <div className="glass-card rounded-xl p-6">
+      <div className="surface rounded-xl p-6">
         <h2 className="mb-2 font-heading text-heading font-semibold">
           AI Insights
         </h2>
@@ -131,7 +131,7 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
   }
 
   return (
-    <div className="glass-card rounded-xl p-6">
+    <div className="surface rounded-xl p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-heading text-heading font-semibold">AI Insights</h2>
         <button

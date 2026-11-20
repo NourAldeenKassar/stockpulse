@@ -133,7 +133,7 @@ export default function PositionsTable({ positions, accountId }: Props) {
   }
 
   return (
-    <div className="glass-card overflow-hidden rounded-xl">
+    <div className="surface overflow-hidden rounded-xl">
       <div className="flex items-center justify-between border-b border-border px-6 py-4">
         <h2 className="font-heading text-heading font-semibold">Positions</h2>
         <div className="relative">

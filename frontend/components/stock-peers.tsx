@@ -6,7 +6,7 @@ export default function StockPeers({ peers }: { peers: string[] }) {
   if (peers.length === 0) return null;
 
   return (
-    <Card>
+    <Card tone="quiet">
       <SectionHeading>Peers</SectionHeading>
       <div className="flex flex-wrap gap-2">
         {peers.map((p) => (

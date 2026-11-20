@@ -3,6 +3,7 @@
 import type { AccountSummary } from '@/lib/types';
 import { formatCurrency, formatPercentOf } from '@/lib/format';
 import { Blur } from '@/lib/privacy';
+import { Card, cn } from '@/components/ui';
 
 interface SummaryCardProps {
   label: string;
@@ -11,6 +12,8 @@ interface SummaryCardProps {
   icon: React.ReactNode;
   glowClass: string;
   valueClass?: string;
+  /** The one figure the page is about, given its own weight. */
+  hero?: boolean;
 }
 
 function SummaryCard({
@@ -20,28 +23,61 @@ function SummaryCard({
   icon,
   glowClass,
   valueClass,
+  hero,
 }: SummaryCardProps) {
   return (
-    <div className={`glass-card ${glowClass} rounded-xl p-5`}>
-      <div className="mb-3 flex items-center justify-between">
-        <span className="text-body font-medium text-text-secondary">
+    <Card
+      tone={hero ? 'prominent' : 'default'}
+      padding={hero ? 'lg' : 'sm'}
+      className={cn(hero && glowClass, hero && 'sm:col-span-2 lg:row-span-2')}
+    >
+      <div
+        className={cn(
+          'flex items-center justify-between',
+          hero ? 'mb-4' : 'mb-2.5',
+        )}
+      >
+        <span
+          className={cn(
+            'font-medium',
+            hero
+              ? 'text-body text-text-secondary'
+              : 'text-caption text-text-muted',
+          )}
+        >
           {label}
         </span>
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg-card">
+        <div
+          className={cn(
+            'flex items-center justify-center rounded-lg bg-bg-card',
+            hero ? 'h-10 w-10' : 'h-8 w-8',
+          )}
+        >
           {icon}
         </div>
       </div>
       <p
-        className={`font-heading text-display font-bold tracking-tight ${valueClass || 'text-text-primary'}`}
+        className={cn(
+          'font-heading font-bold tracking-tight',
+          // The hero number is the focal point, so it is allowed to break the
+          // four-step scale. Everything else stays on it.
+          hero ? 'text-[2.25rem] leading-[2.6rem]' : 'text-heading',
+          valueClass || 'text-text-primary',
+        )}
       >
         <Blur>{value}</Blur>
       </p>
       {subValue && (
-        <p className="mt-1 text-body text-text-muted">
+        <p
+          className={cn(
+            'mt-1 text-caption',
+            hero ? 'text-text-secondary' : 'text-text-muted',
+          )}
+        >
           <Blur>{subValue}</Blur>
         </p>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -58,8 +94,10 @@ export default function PortfolioSummary({
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <SummaryCard
+        hero
         label="Total Value"
         value={formatCurrency(summary.totalValue)}
+        subValue={`${formatPercentOf(invested, summary.totalValue)} invested · ${formatPercentOf(cashAvailable, summary.totalValue)} cash`}
         icon={
           <svg
             width="18"

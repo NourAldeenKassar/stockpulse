@@ -296,7 +296,7 @@ export default function StockPage() {
         />
       )}
 
-      <Card>
+      <Card tone="quiet">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-body font-medium">

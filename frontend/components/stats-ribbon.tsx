@@ -86,7 +86,7 @@ export default function StatsRibbon({ summary, positions, asOf }: Props) {
   ];
 
   return (
-    <div className="glass-card flex flex-wrap items-center justify-between gap-4 rounded-xl px-6 py-3">
+    <div className="surface flex flex-wrap items-center justify-between gap-4 rounded-xl px-6 py-3">
       {stats.map((stat) => (
         <div key={stat.label} className="flex items-center gap-2">
           <span className="text-caption text-text-muted">{stat.label}</span>

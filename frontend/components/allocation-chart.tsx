@@ -76,14 +76,14 @@ export default function AllocationChart({
 
   if (positions.length === 0) {
     return (
-      <div className="glass-card flex h-full items-center justify-center rounded-xl p-6">
+      <div className="surface flex h-full items-center justify-center rounded-xl p-6">
         <p className="text-text-muted">No positions</p>
       </div>
     );
   }
 
   return (
-    <div className="glass-card rounded-xl p-6">
+    <div className="surface rounded-xl p-6">
       <h2 className="mb-4 font-heading text-heading font-semibold">
         Allocation
       </h2>
