@@ -46,7 +46,7 @@ export default function RegisterPage() {
         <div className="absolute bottom-1/4 right-1/4 h-[300px] w-[300px] rounded-full bg-violet/5 blur-[100px]" />
       </div>
 
-      <div className="surface-prominent glow-cyan relative w-full max-w-md rounded-2xl p-8">
+      <div className="surface-prominent glow-cyan relative w-full max-w-md rounded-2xl p-6 sm:p-8">
         <div className="mb-8 text-center">
           <h1 className="mb-2 font-heading text-display font-bold tracking-tight">
             Stock<span className="text-cyan">Pulse</span>

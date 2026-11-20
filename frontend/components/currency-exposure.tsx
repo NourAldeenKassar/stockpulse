@@ -41,7 +41,7 @@ export default function CurrencyExposure({
   if (data.length === 0) return null;
 
   return (
-    <div className="surface rounded-xl p-6">
+    <div className="surface rounded-xl p-5 sm:p-6">
       <h2 className="mb-4 font-heading text-heading font-semibold">
         Currency Exposure
       </h2>

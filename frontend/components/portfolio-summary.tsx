@@ -29,7 +29,7 @@ function SummaryCard({
     <Card
       tone={hero ? 'prominent' : 'default'}
       padding={hero ? 'lg' : 'sm'}
-      className={cn(hero && glowClass, hero && 'sm:col-span-2 lg:row-span-2')}
+      className={cn(hero && glowClass, hero && 'sm:col-span-2 lg:col-span-3')}
     >
       <div
         className={cn(
@@ -92,7 +92,7 @@ export default function PortfolioSummary({
   const pplPositive = ppl >= 0;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
       <SummaryCard
         hero
         label="Total Value"

@@ -23,7 +23,7 @@ export function SkeletonCard({
   rows?: number;
 }) {
   return (
-    <div className="surface rounded-xl p-6" aria-busy="true">
+    <div className="surface rounded-xl p-5 sm:p-6" aria-busy="true">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-heading text-heading font-semibold text-text-muted">
           {title}

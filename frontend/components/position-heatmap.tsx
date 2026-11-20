@@ -122,14 +122,14 @@ export default function PositionHeatmap({
 
   if (data.length === 0) {
     return (
-      <div className="surface flex h-64 items-center justify-center rounded-xl p-6">
+      <div className="surface flex h-64 items-center justify-center rounded-xl p-5 sm:p-6">
         <p className="text-text-muted">No positions to display</p>
       </div>
     );
   }
 
   return (
-    <div className="surface rounded-xl p-6">
+    <div className="surface rounded-xl p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-heading text-heading font-semibold">
           Position Heatmap
