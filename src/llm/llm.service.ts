@@ -12,13 +12,17 @@ const REQUEST_TIMEOUT_MS = 120_000;
 
 export interface LlmOptions {
   /**
-   * false lets the gateway route to paid providers. The gateway itself has no
-   * notion of cheap and expensive keys: this flag is what picks the tier.
+   * Sent for gateways that select a tier per request. Newer LLM Gateway
+   * versions derive the tier from the API key instead and ignore this, which
+   * is why the premium tier is configured as a separate key rather than a
+   * flag — see `tier` below.
    */
   freeOnly: boolean;
   /**
    * Which stored credentials to use. 'premium' prefers the separate premium
-   * gateway when one is configured, so its spend is tracked under its own key.
+   * gateway when one is configured. Since the gateway reads the tier from the
+   * key, a key issued on its paid tier is what actually routes this to a paid
+   * provider.
    */
   tier?: 'standard' | 'premium';
   temperature?: number;
