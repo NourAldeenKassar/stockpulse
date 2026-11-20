@@ -71,11 +71,10 @@ body {
 }
 
 /*
- * Three surface tiers.
+ * Three surface tiers, chosen by importance rather than content type.
  *
- * Every card used to share one treatment, so a peer-ticker list carried the
- * same visual weight as the portfolio total and nothing signalled what
- * mattered. The tier is chosen by importance, not by content type.
+ * Without them every card reads at the same weight, and a supporting list
+ * competes with the figure the page is actually about.
  */
 .surface {
   background: var(--color-bg-card);

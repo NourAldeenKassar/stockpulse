@@ -24,10 +24,10 @@ describe('RateLimiter', () => {
     expect(Date.now() - started).toBeGreaterThanOrEqual(190);
   });
 
-  // The previous implementation read the call log, checked it and recorded the
-  // call without a lock. Concurrent callers all read the same snapshot, all
-  // slept for the same duration and then all fired at once. Spacing the
-  // acquisitions one window apart is what that version could not do.
+  // A limiter that reads the call log, checks it and records the call without
+  // a lock lets concurrent callers read the same snapshot, sleep for the same
+  // duration and then fire together. Spacing acquisitions one window apart is
+  // the property that prevents it.
   it('serialises concurrent callers instead of releasing them together', async () => {
     const limiter = new RateLimiter();
     const config = { maxCalls: 1, windowMs: 200 };

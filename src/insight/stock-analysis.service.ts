@@ -79,7 +79,7 @@ export class StockAnalysisService {
   /**
    * Free market data for a holding. Deliberately separate from generate():
    * Finnhub costs nothing and answers in milliseconds, so it must not sit
-   * behind a paid LLM call the way it used to.
+   * behind a paid LLM call.
    */
   async getMarketData(
     userId: string,

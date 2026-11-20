@@ -4,13 +4,11 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/stockpulse
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/trading212_copilot
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - TRADING212_BASE_URL=${TRADING212_BASE_URL}
-      - LLM_GATEWAY_URL=${LLM_GATEWAY_URL}
-      - LLM_GATEWAY_KEY=${LLM_GATEWAY_KEY}
       - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:-http://localhost:3000}
     depends_on:
       db:
@@ -22,7 +20,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: stockpulse
+      POSTGRES_DB: trading212_copilot
     ports:
       - "5436:5432"
     volumes:

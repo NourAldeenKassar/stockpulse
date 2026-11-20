@@ -126,6 +126,7 @@ This starts PostgreSQL and the app on port `3000`.
 | `JWT_REFRESH_SECRET` | Yes | Secret for refresh token signing |
 | `ENCRYPTION_KEY` | Yes | 64-char hex string for AES-256 encryption |
 | `TRADING212_BASE_URL` | No | Defaults to `https://live.trading212.com` |
+| `PORT` | No | API port, defaults to `3000` |
 | `FRONTEND_ORIGIN` | No | Allowed CORS origin, defaults to `http://localhost:3001`. Comma-separate for several. |
 
 Secrets must be at least 32 characters, and the two JWT secrets must differ.
