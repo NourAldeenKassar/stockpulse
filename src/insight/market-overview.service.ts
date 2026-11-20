@@ -124,8 +124,8 @@ export class MarketOverviewService {
 
     const news: PortfolioNewsItem[] = [];
 
-    // In parallel. Sequentially this took over a minute for seven holdings,
-    // because each one waits on several round trips before the next starts.
+    // In parallel. Done sequentially each holding waits on several round trips
+    // before the next begins, which costs over a minute for a handful of them.
     // The rate limiter still protects the budget: when a portfolio needs more
     // calls than the window allows, it queues them rather than dropping them.
     // Cleared once rather than per holding: the caches are shared, so clearing

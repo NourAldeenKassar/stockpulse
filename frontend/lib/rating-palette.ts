@@ -2,10 +2,10 @@
  * Diverging palette for analyst ratings: two hues either side of a neutral
  * grey midpoint, with a saturated pole and a pale inner step on each side.
  *
- * The previous steps used two near-identical greens and two near-identical
- * pinks. Measured, the worst adjacent pair was ΔE 8.8 in normal vision, well
- * under the floor of 15 — genuinely hard to tell apart. These steps measure
- * ΔE 25.3 normal and 20.6 under simulated colour-vision deficiency.
+ * Adjacent steps must stay far enough apart to be told apart. These measure
+ * ΔE 25.3 in normal vision and 20.6 under simulated colour-vision deficiency,
+ * against a floor of 15. Re-measure before changing any of them; two greens a
+ * shade apart look fine in isolation and are indistinguishable side by side.
  *
  * The grey midpoint reads as grey on purpose: that is what makes it diverging
  * rather than categorical.
@@ -35,10 +35,9 @@ export const SEGMENT_GAP = '2px';
 /**
  * The same diverging scale applied to profit and loss.
  *
- * It has a neutral band around zero rather than jumping straight from pale
- * green to pale pink. Without it the two inner steps measured ΔE 1.0 under
- * simulated deuteranopia — a small gain and a small loss were the same colour
- * to a red-green colourblind reader.
+ * The neutral band around zero is load-bearing: without it the two inner steps
+ * measure ΔE 1.0 under simulated deuteranopia, making a small gain and a small
+ * loss the same colour to a red-green colourblind reader.
  *
  * `text` accompanies each step because the pale fills cannot carry white
  * labels.
