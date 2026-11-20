@@ -48,21 +48,21 @@ export default function RegisterPage() {
 
       <div className="glass-card glow-cyan relative w-full max-w-md rounded-2xl p-8">
         <div className="mb-8 text-center">
-          <h1 className="mb-2 font-heading text-3xl font-bold tracking-tight">
+          <h1 className="mb-2 font-heading text-display font-bold tracking-tight">
             Stock<span className="text-cyan">Pulse</span>
           </h1>
-          <p className="text-sm text-text-secondary">Create your account</p>
+          <p className="text-body text-text-secondary">Create your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <div className="rounded-lg bg-rose-glow border border-rose/20 px-4 py-3 text-sm text-rose">
+            <div className="rounded-lg bg-rose-glow border border-rose/20 px-4 py-3 text-body text-rose">
               {error}
             </div>
           )}
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+            <label className="mb-1.5 block text-body font-medium text-text-secondary">
               Email
             </label>
             <input
@@ -70,13 +70,13 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg px-4 py-3 text-sm"
+              className="w-full rounded-lg px-4 py-3 text-body"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+            <label className="mb-1.5 block text-body font-medium text-text-secondary">
               Password
             </label>
             <input
@@ -84,13 +84,13 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-lg px-4 py-3 text-sm"
+              className="w-full rounded-lg px-4 py-3 text-body"
               placeholder="At least 6 characters"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+            <label className="mb-1.5 block text-body font-medium text-text-secondary">
               Confirm Password
             </label>
             <input
@@ -98,7 +98,7 @@ export default function RegisterPage() {
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               required
-              className="w-full rounded-lg px-4 py-3 text-sm"
+              className="w-full rounded-lg px-4 py-3 text-body"
               placeholder="Repeat your password"
             />
           </div>
@@ -106,13 +106,13 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-gradient-to-r from-cyan to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan/30 disabled:opacity-50 disabled:hover:translate-y-0"
+            className="w-full rounded-lg bg-gradient-to-r from-cyan to-blue-500 px-4 py-3 text-body font-semibold text-white shadow-lg shadow-cyan/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan/30 disabled:opacity-50 disabled:hover:translate-y-0"
           >
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-text-muted">
+        <p className="mt-6 text-center text-body text-text-muted">
           Already have an account?{' '}
           <Link
             href="/login"

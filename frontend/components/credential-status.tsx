@@ -19,7 +19,7 @@ const STATE_LABEL: Record<CredentialState, string> = {
 export function StatusChip({ state }: { state: CredentialState }) {
   return (
     <span
-      className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${STATE_STYLES[state]}`}
+      className={`shrink-0 rounded-full px-2.5 py-0.5 text-caption font-semibold ring-1 ${STATE_STYLES[state]}`}
     >
       {STATE_LABEL[state]}
     </span>
@@ -44,9 +44,9 @@ export function StatusRow({
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border py-2.5 last:border-b-0">
       <StatusChip state={state} />
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-body font-medium">{label}</span>
       {detail && (
-        <span className="min-w-0 flex-1 truncate font-mono text-xs text-text-muted">
+        <span className="min-w-0 flex-1 truncate font-mono text-caption text-text-muted">
           {detail}
         </span>
       )}

@@ -116,8 +116,10 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
   if (!configured) {
     return (
       <div className="glass-card rounded-xl p-6">
-        <h2 className="mb-2 font-heading text-lg font-semibold">AI Insights</h2>
-        <p className="text-sm text-text-muted">
+        <h2 className="mb-2 font-heading text-heading font-semibold">
+          AI Insights
+        </h2>
+        <p className="text-body text-text-muted">
           Configure your LLM Gateway in{' '}
           <a href="/settings" className="text-cyan hover:text-cyan-dim">
             Settings
@@ -131,11 +133,11 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
   return (
     <div className="glass-card rounded-xl p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-heading text-lg font-semibold">AI Insights</h2>
+        <h2 className="font-heading text-heading font-semibold">AI Insights</h2>
         <button
           onClick={() => void handleGenerate()}
           disabled={loading}
-          className="rounded-lg bg-gradient-to-r from-cyan to-blue-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-cyan/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan/30 disabled:opacity-50 disabled:hover:translate-y-0"
+          className="rounded-lg bg-gradient-to-r from-cyan to-blue-500 px-4 py-2 text-caption font-semibold text-white shadow-lg shadow-cyan/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan/30 disabled:opacity-50 disabled:hover:translate-y-0"
         >
           {loading
             ? 'Analyzing...'
@@ -146,7 +148,7 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-sm text-rose">
+        <div className="mb-4 rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-body text-rose">
           {error}
         </div>
       )}
@@ -154,21 +156,21 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
       {loading && (
         <div className="flex items-center gap-3 py-8">
           <Spinner size="sm" />
-          <span className="text-sm text-text-muted">
+          <span className="text-body text-text-muted">
             AI is analyzing your portfolio...
           </span>
         </div>
       )}
 
       {!loading && insights.length === 0 && !generated && (
-        <p className="text-sm text-text-muted">
+        <p className="text-body text-text-muted">
           Click &ldquo;Generate Insights&rdquo; to get AI analysis of your
           portfolio.
         </p>
       )}
 
       {!loading && insights.length === 0 && generated && (
-        <p className="text-sm text-text-muted">
+        <p className="text-body text-text-muted">
           No insights generated. Try again.
         </p>
       )}
@@ -185,17 +187,17 @@ export default function InsightCards({ accountId, llmSettings }: Props) {
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {meta.icon}
-                    <span className="text-sm font-semibold">
+                    <span className="text-body font-semibold">
                       {insight.title}
                     </span>
                   </div>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${severityBadge[insight.severity] || severityBadge.low}`}
+                    className={`rounded-full px-2 py-0.5 text-caption font-semibold ${severityBadge[insight.severity] || severityBadge.low}`}
                   >
                     {insight.severity}
                   </span>
                 </div>
-                <p className="text-sm leading-relaxed text-text-secondary">
+                <p className="text-body leading-relaxed text-text-secondary">
                   {insight.body}
                 </p>
               </div>

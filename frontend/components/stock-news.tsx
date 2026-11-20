@@ -9,7 +9,9 @@ export default function StockNews({ news }: { news: NewsItem[] }) {
   return (
     <Card>
       <SectionHeading
-        action={<span className="text-xs text-text-muted">last 30 days</span>}
+        action={
+          <span className="text-caption text-text-muted">last 30 days</span>
+        }
       >
         Recent news
       </SectionHeading>
@@ -23,10 +25,10 @@ export default function StockNews({ news }: { news: NewsItem[] }) {
             rel="noopener noreferrer"
             className="group block rounded-lg border border-border px-4 py-3 transition-colors hover:border-border-glow hover:bg-bg-card-hover"
           >
-            <p className="text-sm font-medium transition-colors group-hover:text-cyan">
+            <p className="text-body font-medium transition-colors group-hover:text-cyan">
               {item.headline}
             </p>
-            <p className="mt-1 text-[11px] text-text-muted">
+            <p className="mt-1 text-caption text-text-muted">
               {item.source}
               {item.source ? ' · ' : ''}
               <LocalTime iso={item.datetime} mode="date" />

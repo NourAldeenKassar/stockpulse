@@ -89,12 +89,12 @@ export default function StatsRibbon({ summary, positions, asOf }: Props) {
     <div className="glass-card flex flex-wrap items-center justify-between gap-4 rounded-xl px-6 py-3">
       {stats.map((stat) => (
         <div key={stat.label} className="flex items-center gap-2">
-          <span className="text-xs text-text-muted">{stat.label}</span>
-          <span className={`text-sm font-semibold ${stat.color}`}>
+          <span className="text-caption text-text-muted">{stat.label}</span>
+          <span className={`text-body font-semibold ${stat.color}`}>
             {stat.sensitive ? <Blur>{stat.value}</Blur> : stat.value}
           </span>
           {stat.sub && (
-            <span className={`text-xs ${stat.color}`}>
+            <span className={`text-caption ${stat.color}`}>
               {stat.sensitive ? <Blur>{stat.sub}</Blur> : stat.sub}
             </span>
           )}

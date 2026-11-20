@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import type { Snapshot } from '@/lib/types';
 import { formatCurrencyShort } from '@/lib/format';
+import { CAPTION_PX } from '@/lib/type-scale';
 import { usePrivacy } from '@/lib/privacy';
 
 const RANGES = [
@@ -32,7 +33,7 @@ function CustomTooltip({ active, payload, label, hidden }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div className="glass-card rounded-lg border border-border-glow px-4 py-3">
-      <p className="text-xs text-text-muted">
+      <p className="text-caption text-text-muted">
         {new Date(label).toLocaleDateString('en-US', {
           weekday: 'short',
           month: 'short',
@@ -41,7 +42,7 @@ function CustomTooltip({ active, payload, label, hidden }: any) {
         })}
       </p>
       <p
-        className={`mt-1 font-heading text-lg font-bold text-cyan ${hidden ? 'select-none blur-md' : ''}`}
+        className={`mt-1 font-heading text-heading font-bold text-cyan ${hidden ? 'select-none blur-md' : ''}`}
       >
         {formatCurrencyShort(payload[0].value)}
       </p>
@@ -91,13 +92,15 @@ export default function PortfolioChart({
   return (
     <div className="glass-card rounded-xl p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="font-heading text-lg font-semibold">Portfolio Value</h2>
+        <h2 className="font-heading text-heading font-semibold">
+          Portfolio Value
+        </h2>
         <div className="flex flex-wrap gap-1 rounded-lg bg-bg-card p-1">
           {RANGES.map((r) => (
             <button
               key={r.label}
               onClick={() => setRange(r.label)}
-              className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 ${
+              className={`rounded-md px-2.5 py-1.5 text-caption font-medium transition-colors sm:px-3 ${
                 range === r.label
                   ? 'bg-cyan/15 text-cyan'
                   : 'text-text-muted hover:text-text-secondary'
@@ -126,7 +129,7 @@ export default function PortfolioChart({
             dataKey="date"
             tickFormatter={formatDate}
             stroke="rgba(255,255,255,0.1)"
-            tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
+            tick={{ fill: 'var(--color-text-muted)', fontSize: CAPTION_PX }}
             tickLine={false}
             axisLine={false}
           />
@@ -136,7 +139,7 @@ export default function PortfolioChart({
               hidden ? '***' : formatCurrencyShort(v)
             }
             stroke="rgba(255,255,255,0.1)"
-            tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
+            tick={{ fill: 'var(--color-text-muted)', fontSize: CAPTION_PX }}
             tickLine={false}
             axisLine={false}
             width={80}

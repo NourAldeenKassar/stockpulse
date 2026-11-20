@@ -89,19 +89,19 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-heading text-2xl font-bold">Settings</h1>
-        <p className="mt-1 text-sm text-text-secondary">
+        <h1 className="font-heading text-display font-bold">Settings</h1>
+        <p className="mt-1 text-body text-text-secondary">
           Manage your Trading212 connections and snapshot preferences.
         </p>
       </div>
 
       <div className="glass-card rounded-xl p-6">
-        <h2 className="mb-4 font-heading text-lg font-semibold">
+        <h2 className="mb-4 font-heading text-heading font-semibold">
           Connected Accounts
         </h2>
 
         {accounts.length === 0 ? (
-          <p className="text-sm text-text-muted">
+          <p className="text-body text-text-muted">
             No accounts connected yet. Add one below.
           </p>
         ) : (
@@ -113,10 +113,10 @@ export default function SettingsPage() {
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-heading text-base font-semibold">
+                    <h3 className="font-heading text-body font-semibold">
                       {acc.label}
                     </h3>
-                    <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-text-muted">
+                    <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-caption text-text-muted">
                       <span>
                         Status:{' '}
                         <span
@@ -142,7 +142,7 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => void handleTriggerSnapshot(acc.id)}
-                      className="rounded-lg bg-cyan/10 px-3 py-1.5 text-xs font-medium text-cyan transition-colors hover:bg-cyan/20"
+                      className="rounded-lg bg-cyan/10 px-3 py-1.5 text-caption font-medium text-cyan transition-colors hover:bg-cyan/20"
                     >
                       Snapshot Now
                     </button>
@@ -152,13 +152,13 @@ export default function SettingsPage() {
                         <button
                           onClick={() => void handleDisconnect(acc.id)}
                           disabled={disconnecting === acc.id}
-                          className="rounded-lg bg-rose/15 px-3 py-1.5 text-xs font-medium text-rose transition-colors hover:bg-rose/25"
+                          className="rounded-lg bg-rose/15 px-3 py-1.5 text-caption font-medium text-rose transition-colors hover:bg-rose/25"
                         >
                           {disconnecting === acc.id ? 'Removing...' : 'Confirm'}
                         </button>
                         <button
                           onClick={() => setConfirmDisconnect(null)}
-                          className="rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted hover:text-text-secondary"
+                          className="rounded-lg px-3 py-1.5 text-caption font-medium text-text-muted hover:text-text-secondary"
                         >
                           Cancel
                         </button>
@@ -166,7 +166,7 @@ export default function SettingsPage() {
                     ) : (
                       <button
                         onClick={() => setConfirmDisconnect(acc.id)}
-                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-rose/60 transition-colors hover:bg-rose-glow hover:text-rose"
+                        className="rounded-lg px-3 py-1.5 text-caption font-medium text-rose/60 transition-colors hover:bg-rose-glow hover:text-rose"
                       >
                         Disconnect
                       </button>
@@ -175,7 +175,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="mt-4 flex items-center gap-3">
-                  <label className="text-sm text-text-secondary">
+                  <label className="text-body text-text-secondary">
                     Snapshot interval:
                   </label>
                   <select
@@ -183,7 +183,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       void handleIntervalChange(acc.id, Number(e.target.value))
                     }
-                    className="rounded-lg px-3 py-2 text-sm"
+                    className="rounded-lg px-3 py-2 text-body"
                   >
                     {INTERVAL_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>

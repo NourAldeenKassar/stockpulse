@@ -35,8 +35,8 @@ function Stat({
 }) {
   return (
     <div>
-      <p className="mb-1 text-xs text-text-muted">{label}</p>
-      <p className={`font-heading text-lg font-semibold ${tone ?? ''}`}>
+      <p className="mb-1 text-caption text-text-muted">{label}</p>
+      <p className={`font-heading text-heading font-semibold ${tone ?? ''}`}>
         {sensitive ? <Blur>{value}</Blur> : value}
       </p>
     </div>
@@ -142,10 +142,10 @@ export default function StockPage() {
   if (!position) {
     return (
       <Card className="text-center">
-        <p className="mb-4 text-sm text-text-secondary">
+        <p className="mb-4 text-body text-text-secondary">
           No open position found for {ticker}.
         </p>
-        <Link href="/dashboard" className="text-sm text-cyan hover:underline">
+        <Link href="/dashboard" className="text-body text-cyan hover:underline">
           Back to dashboard
         </Link>
       </Card>
@@ -162,15 +162,15 @@ export default function StockPage() {
       <div>
         <Link
           href="/dashboard"
-          className="text-xs text-text-muted transition-colors hover:text-text-secondary"
+          className="text-caption text-text-muted transition-colors hover:text-text-secondary"
         >
           ← Back to dashboard
         </Link>
         <div className="mt-2 flex flex-wrap items-baseline gap-3">
-          <h1 className="font-heading text-2xl font-bold">
+          <h1 className="font-heading text-display font-bold">
             {position.instrument.name}
           </h1>
-          <span className="font-mono text-sm text-text-muted">
+          <span className="font-mono text-body text-text-muted">
             {position.instrument.ticker}
           </span>
         </div>
@@ -210,7 +210,7 @@ export default function StockPage() {
             value={`${allocationPercent(position, portfolioValue).toFixed(1)}%`}
           />
         </div>
-        <p className={`mt-4 text-sm font-semibold ${tone}`}>
+        <p className={`mt-4 text-body font-semibold ${tone}`}>
           {formatPercent(pct)} since purchase
         </p>
       </Card>
@@ -219,7 +219,7 @@ export default function StockPage() {
         <Card>
           <div className="flex items-center gap-3 py-4">
             <Spinner size="sm" />
-            <span className="text-sm text-text-muted">
+            <span className="text-body text-text-muted">
               Loading market data...
             </span>
           </div>
@@ -250,7 +250,7 @@ export default function StockPage() {
       {!marketLoading && !market && (
         <Card>
           <SectionHeading>Market data</SectionHeading>
-          <p className="text-sm text-text-muted">
+          <p className="text-body text-text-muted">
             No Finnhub API key is configured. Add one in{' '}
             <Link href="/settings" className="text-cyan hover:underline">
               Settings
@@ -263,7 +263,7 @@ export default function StockPage() {
       {!marketLoading && market && !market.consensus && (
         <Card>
           <SectionHeading>Analyst consensus</SectionHeading>
-          <p className="text-sm text-text-muted">
+          <p className="text-body text-text-muted">
             No analyst data could be matched to this holding, so none is shown
             rather than guessed. Funds and ETFs generally have no coverage.
           </p>
@@ -271,7 +271,7 @@ export default function StockPage() {
       )}
 
       {error && (
-        <div className="rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-sm text-rose">
+        <div className="rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-body text-rose">
           {error}
         </div>
       )}
@@ -280,7 +280,7 @@ export default function StockPage() {
         <Card>
           <div className="flex items-center gap-3 py-4">
             <Spinner size="sm" />
-            <span className="text-sm text-text-muted">
+            <span className="text-body text-text-muted">
               Analysing with the paid model...
             </span>
           </div>
@@ -299,10 +299,10 @@ export default function StockPage() {
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-medium">
+            <p className="text-body font-medium">
               {result ? 'Regenerate analysis' : 'Generate analysis'}
             </p>
-            <p className="mt-0.5 text-xs text-text-muted">
+            <p className="mt-0.5 text-caption text-text-muted">
               {result?.generatedAt ? (
                 <>
                   Last generated <LocalTime iso={result.generatedAt} />. This

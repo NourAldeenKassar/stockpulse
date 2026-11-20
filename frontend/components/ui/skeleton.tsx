@@ -25,10 +25,10 @@ export function SkeletonCard({
   return (
     <div className="glass-card rounded-xl p-6" aria-busy="true">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-heading text-lg font-semibold text-text-muted">
+        <h2 className="font-heading text-heading font-semibold text-text-muted">
           {title}
         </h2>
-        <span className="flex items-center gap-2 text-xs text-text-muted">
+        <span className="flex items-center gap-2 text-caption text-text-muted">
           <span className="h-3 w-3 animate-spin rounded-full border-2 border-cyan border-t-transparent" />
           Loading
         </span>

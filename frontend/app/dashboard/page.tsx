@@ -93,7 +93,7 @@ export default function DashboardPage() {
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mx-auto mb-4" />
-          <p className="text-sm text-text-muted">Loading portfolio...</p>
+          <p className="text-body text-text-muted">Loading portfolio...</p>
         </div>
       </div>
     );
@@ -118,10 +118,10 @@ export default function DashboardPage() {
               <polyline points="16,7 22,7 22,13" />
             </svg>
           </div>
-          <h2 className="mb-2 font-heading text-xl font-bold">
+          <h2 className="mb-2 font-heading text-heading font-bold">
             Connect Your Portfolio
           </h2>
-          <p className="mb-6 text-sm text-text-secondary">
+          <p className="mb-6 text-body text-text-secondary">
             Connect your Trading212 account to start tracking your portfolio
             performance.
           </p>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
             <>
               <label
                 htmlFor="account-select"
-                className="text-sm font-medium text-text-secondary"
+                className="text-body font-medium text-text-secondary"
               >
                 Account:
               </label>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                 id="account-select"
                 value={selectedAccount}
                 onChange={(e) => selectAccount(e.target.value)}
-                className="rounded-lg px-3 py-2 text-sm"
+                className="rounded-lg px-3 py-2 text-body"
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -182,7 +182,7 @@ export default function DashboardPage() {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-sm text-rose">
+        <div className="rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-body text-rose">
           {error}
         </div>
       )}
@@ -204,7 +204,7 @@ export default function DashboardPage() {
                   editMode={editMode}
                 >
                   {editMode && (
-                    <div className="pointer-events-none absolute -top-2 left-3 z-10 rounded bg-cyan/20 px-2 py-0.5 text-[10px] font-semibold text-cyan">
+                    <div className="pointer-events-none absolute -top-2 left-3 z-10 rounded bg-cyan/20 px-2 py-0.5 text-caption font-semibold text-cyan">
                       {SECTION_LABELS[sectionId] || sectionId}
                     </div>
                   )}

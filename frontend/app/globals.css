@@ -22,6 +22,25 @@
   --color-text-secondary: #94a3b8;
   --color-text-muted: #64748b;
 
+  /*
+   * The whole type scale. Three text sizes plus one display size, replacing
+   * nine ad-hoc ones including arbitrary 10px and 11px values that sat a pixel
+   * apart from each other.
+   *
+   *   caption  labels, metadata, source lines, badges
+   *   body     default running text and values
+   *   heading  section headings
+   *   display  page titles and the numbers a page is actually about
+   */
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.1rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.35rem;
+  --text-heading: 1.125rem;
+  --text-heading--line-height: 1.6rem;
+  --text-display: 1.5rem;
+  --text-display--line-height: 1.9rem;
+
   --font-heading: var(--font-space-grotesk), system-ui, sans-serif;
   --font-body: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), monospace;

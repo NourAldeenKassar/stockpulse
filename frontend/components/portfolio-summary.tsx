@@ -24,18 +24,20 @@ function SummaryCard({
   return (
     <div className={`glass-card ${glowClass} rounded-xl p-5`}>
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-text-secondary">{label}</span>
+        <span className="text-body font-medium text-text-secondary">
+          {label}
+        </span>
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg-card">
           {icon}
         </div>
       </div>
       <p
-        className={`font-heading text-2xl font-bold tracking-tight ${valueClass || 'text-text-primary'}`}
+        className={`font-heading text-display font-bold tracking-tight ${valueClass || 'text-text-primary'}`}
       >
         <Blur>{value}</Blur>
       </p>
       {subValue && (
-        <p className="mt-1 text-sm text-text-muted">
+        <p className="mt-1 text-body text-text-muted">
           <Blur>{subValue}</Blur>
         </p>
       )}

@@ -40,7 +40,7 @@ function SortHeader({
   return (
     <th
       onClick={() => onSort(field)}
-      className="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted transition-colors hover:text-text-secondary"
+      className="cursor-pointer px-4 py-3 text-left text-caption font-medium uppercase tracking-wider text-text-muted transition-colors hover:text-text-secondary"
     >
       <span className="inline-flex items-center gap-1">
         {label}
@@ -135,7 +135,7 @@ export default function PositionsTable({ positions, accountId }: Props) {
   return (
     <div className="glass-card overflow-hidden rounded-xl">
       <div className="flex items-center justify-between border-b border-border px-6 py-4">
-        <h2 className="font-heading text-lg font-semibold">Positions</h2>
+        <h2 className="font-heading text-heading font-semibold">Positions</h2>
         <div className="relative">
           <svg
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
@@ -152,7 +152,7 @@ export default function PositionsTable({ positions, accountId }: Props) {
             placeholder="Search ticker..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-48 rounded-lg py-2 pl-9 pr-3 text-sm"
+            className="w-48 rounded-lg py-2 pl-9 pr-3 text-body"
           />
         </div>
       </div>
@@ -233,50 +233,52 @@ export default function PositionsTable({ positions, accountId }: Props) {
                         href={`/stocks/${encodeURIComponent(p.ticker)}?account=${accountId}`}
                         className="group inline-flex items-baseline"
                       >
-                        <span className="text-sm font-semibold transition-colors group-hover:text-cyan">
+                        <span className="text-body font-semibold transition-colors group-hover:text-cyan">
                           {p.name}
                         </span>
-                        <span className="ml-2 font-mono text-xs text-text-muted">
+                        <span className="ml-2 font-mono text-caption text-text-muted">
                           {p.ticker}
                         </span>
                       </Link>
                     ) : (
                       <div>
-                        <span className="text-sm font-semibold">{p.name}</span>
-                        <span className="ml-2 font-mono text-xs text-text-muted">
+                        <span className="text-body font-semibold">
+                          {p.name}
+                        </span>
+                        <span className="ml-2 font-mono text-caption text-text-muted">
                           {p.ticker}
                         </span>
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-text-secondary">
+                  <td className="px-4 py-3 text-body text-text-secondary">
                     <Blur>
                       {p.quantity.toFixed(p.quantity % 1 === 0 ? 0 : 4)}
                     </Blur>
                   </td>
-                  <td className="px-4 py-3 text-sm text-text-secondary">
+                  <td className="px-4 py-3 text-body text-text-secondary">
                     <Blur>{formatCurrency(p.averagePricePaid)}</Blur>
                   </td>
-                  <td className="px-4 py-3 text-sm text-text-primary">
+                  <td className="px-4 py-3 text-body text-text-primary">
                     {formatCurrency(p.currentPrice)}
                   </td>
                   <td
-                    className={`px-4 py-3 text-sm font-medium ${p.ppl >= 0 ? 'text-positive' : 'text-negative'}`}
+                    className={`px-4 py-3 text-body font-medium ${p.ppl >= 0 ? 'text-positive' : 'text-negative'}`}
                   >
                     <Blur>{formatCurrency(p.ppl)}</Blur>
                   </td>
                   <td
-                    className={`px-4 py-3 text-sm font-medium ${p.pplPercent >= 0 ? 'text-positive' : 'text-negative'}`}
+                    className={`px-4 py-3 text-body font-medium ${p.pplPercent >= 0 ? 'text-positive' : 'text-negative'}`}
                   >
                     <span
-                      className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${
+                      className={`inline-block rounded px-2 py-0.5 text-caption font-semibold ${
                         p.pplPercent >= 0 ? 'bg-positive' : 'bg-negative'
                       }`}
                     >
                       {formatPercent(p.pplPercent)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-text-secondary">
+                  <td className="px-4 py-3 text-body text-text-secondary">
                     {p.allocation.toFixed(1)}%
                   </td>
                 </tr>

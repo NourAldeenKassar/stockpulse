@@ -17,7 +17,7 @@ export default function StockEarnings({
     <Card>
       <SectionHeading
         action={
-          <span className="text-xs text-text-muted">EPS vs estimate</span>
+          <span className="text-caption text-text-muted">EPS vs estimate</span>
         }
       >
         Earnings
@@ -33,15 +33,20 @@ export default function StockEarnings({
               key={e.period}
               className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5"
             >
-              <span className="text-sm font-medium">{e.period}</span>
+              <span className="text-body font-medium">{e.period}</span>
               <div className="flex items-center gap-4">
-                <span className="text-xs text-text-muted">
+                <span className="text-caption text-text-muted">
                   est {e.estimate ?? '—'}
                 </span>
-                <span className="text-sm font-semibold">{e.actual ?? '—'}</span>
+                <span className="text-body font-semibold">
+                  {e.actual ?? '—'}
+                  <span className="ml-1 text-caption font-normal text-text-muted">
+                    {currency ? `${currency} ` : ''}EPS
+                  </span>
+                </span>
                 {e.surprisePercent !== null && (
                   <span
-                    className={`rounded px-2 py-0.5 text-xs font-bold ${bg} ${tone}`}
+                    className={`rounded px-2 py-0.5 text-caption font-bold ${bg} ${tone}`}
                   >
                     {beat ? '+' : ''}
                     {e.surprisePercent.toFixed(1)}%

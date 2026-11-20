@@ -40,7 +40,7 @@ export default function Navbar() {
               <polyline points="16,7 22,7 22,13" />
             </svg>
           </div>
-          <span className="hidden font-heading text-lg font-semibold tracking-tight xs:inline sm:inline">
+          <span className="hidden font-heading text-heading font-semibold tracking-tight xs:inline sm:inline">
             Stock<span className="text-cyan">Pulse</span>
           </span>
         </Link>
@@ -52,7 +52,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:px-4 ${
+                className={`rounded-lg px-3 py-2 text-body font-medium transition-colors sm:px-4 ${
                   active
                     ? 'bg-cyan/10 text-cyan'
                     : 'text-text-secondary hover:bg-bg-card-hover hover:text-text-primary'
@@ -101,12 +101,12 @@ export default function Navbar() {
               </svg>
             )}
           </button>
-          <span className="hidden max-w-[12rem] truncate text-sm text-text-muted lg:inline">
+          <span className="hidden max-w-[12rem] truncate text-body text-text-muted lg:inline">
             {user?.email}
           </span>
           <button
             onClick={logout}
-            className="rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-rose-glow hover:text-rose"
+            className="rounded-lg px-3 py-1.5 text-body font-medium text-text-secondary transition-colors hover:bg-rose-glow hover:text-rose"
           >
             Sign Out
           </button>

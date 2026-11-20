@@ -16,7 +16,9 @@ export default function PortfolioNews({
   return (
     <Card>
       <SectionHeading
-        action={<span className="text-xs text-text-muted">last 30 days</span>}
+        action={
+          <span className="text-caption text-text-muted">last 30 days</span>
+        }
       >
         News across your holdings
       </SectionHeading>
@@ -30,11 +32,11 @@ export default function PortfolioNews({
             <div className="mb-1.5 flex flex-wrap items-center gap-2">
               <Link
                 href={`/stocks/${encodeURIComponent(item.ticker)}?account=${accountId}`}
-                className="rounded bg-cyan/10 px-2 py-0.5 text-[10px] font-semibold text-cyan transition-colors hover:bg-cyan/20"
+                className="rounded bg-cyan/10 px-2 py-0.5 text-caption font-semibold text-cyan transition-colors hover:bg-cyan/20"
               >
                 {item.name}
               </Link>
-              <span className="text-[11px] text-text-muted">
+              <span className="text-caption text-text-muted">
                 {item.source}
                 {item.source ? ' · ' : ''}
                 <LocalTime iso={item.datetime} mode="date" />
@@ -44,7 +46,7 @@ export default function PortfolioNews({
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-sm font-medium leading-snug transition-colors hover:text-cyan"
+              className="block text-body font-medium leading-snug transition-colors hover:text-cyan"
             >
               {item.headline}
             </a>

@@ -12,13 +12,13 @@ export default function StockPeers({ peers }: { peers: string[] }) {
         {peers.map((p) => (
           <span
             key={p}
-            className="rounded-lg border border-border bg-bg-card px-3 py-1.5 font-mono text-xs text-text-secondary"
+            className="rounded-lg border border-border bg-bg-card px-3 py-1.5 font-mono text-caption text-text-secondary"
           >
             {p}
           </span>
         ))}
       </div>
-      <p className="mt-4 text-[11px] text-text-muted">
+      <p className="mt-4 text-caption text-text-muted">
         Companies Finnhub considers comparable. Not holdings.
       </p>
     </Card>

@@ -48,13 +48,13 @@ export default function WhatIfSimulator({
 
   return (
     <div className="glass-card rounded-xl p-6">
-      <h2 className="mb-4 font-heading text-lg font-semibold">
+      <h2 className="mb-4 font-heading text-heading font-semibold">
         What-If Simulator
       </h2>
 
       <div className="space-y-4">
         <div>
-          <label className="mb-1.5 block text-xs text-text-secondary">
+          <label className="mb-1.5 block text-caption text-text-secondary">
             Select Position
           </label>
           <select
@@ -63,7 +63,7 @@ export default function WhatIfSimulator({
               setSelectedTicker(e.target.value);
               setPriceChange(0);
             }}
-            className="w-full rounded-lg px-3 py-2 text-sm"
+            className="w-full rounded-lg px-3 py-2 text-body"
           >
             <option value="">Choose a position...</option>
             {sorted.map((p) => (
@@ -79,11 +79,11 @@ export default function WhatIfSimulator({
           <>
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <label className="text-xs text-text-secondary">
+                <label className="text-caption text-text-secondary">
                   Price Change
                 </label>
                 <span
-                  className={`font-mono text-lg font-bold ${
+                  className={`font-mono text-heading font-bold ${
                     priceChange >= 0 ? 'text-emerald' : 'text-rose'
                   }`}
                 >
@@ -100,7 +100,7 @@ export default function WhatIfSimulator({
                 onChange={(e) => setPriceChange(Number(e.target.value))}
                 className="w-full accent-cyan"
               />
-              <div className="mt-1 flex justify-between text-[10px] text-text-muted">
+              <div className="mt-1 flex justify-between text-caption text-text-muted">
                 <span>-50%</span>
                 <span>0%</span>
                 <span>+50%</span>
@@ -110,33 +110,33 @@ export default function WhatIfSimulator({
             {impact && (
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-bg-card p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-text-muted">
+                  <p className="text-caption uppercase tracking-wider text-text-muted">
                     New Price
                   </p>
-                  <p className="font-mono text-sm font-semibold">
+                  <p className="font-mono text-body font-semibold">
                     {formatCurrency(impact.newPrice)}
                   </p>
-                  <p className="text-xs text-text-muted">
+                  <p className="text-caption text-text-muted">
                     from {formatCurrency(impact.currentPrice)}
                   </p>
                 </div>
                 <div className="rounded-lg bg-bg-card p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-text-muted">
+                  <p className="text-caption uppercase tracking-wider text-text-muted">
                     New Value
                   </p>
-                  <p className="font-mono text-sm font-semibold">
+                  <p className="font-mono text-body font-semibold">
                     <Blur>{formatCurrency(impact.newValue)}</Blur>
                   </p>
-                  <p className="text-xs text-text-muted">
+                  <p className="text-caption text-text-muted">
                     from <Blur>{formatCurrency(impact.currentValue)}</Blur>
                   </p>
                 </div>
                 <div className="rounded-lg bg-bg-card p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-text-muted">
+                  <p className="text-caption uppercase tracking-wider text-text-muted">
                     P&L Impact
                   </p>
                   <p
-                    className={`font-mono text-sm font-bold ${impact.valueDiff >= 0 ? 'text-emerald' : 'text-rose'}`}
+                    className={`font-mono text-body font-bold ${impact.valueDiff >= 0 ? 'text-emerald' : 'text-rose'}`}
                   >
                     <Blur>
                       {impact.valueDiff >= 0 ? '+' : ''}
@@ -145,11 +145,11 @@ export default function WhatIfSimulator({
                   </p>
                 </div>
                 <div className="rounded-lg bg-bg-card p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-text-muted">
+                  <p className="text-caption uppercase tracking-wider text-text-muted">
                     Portfolio Impact
                   </p>
                   <p
-                    className={`font-mono text-sm font-bold ${impact.portfolioImpact >= 0 ? 'text-emerald' : 'text-rose'}`}
+                    className={`font-mono text-body font-bold ${impact.portfolioImpact >= 0 ? 'text-emerald' : 'text-rose'}`}
                   >
                     <Blur>
                       {impact.portfolioImpact >= 0 ? '+' : ''}
@@ -163,7 +163,7 @@ export default function WhatIfSimulator({
         )}
 
         {!selected && (
-          <p className="py-4 text-center text-sm text-text-muted">
+          <p className="py-4 text-center text-body text-text-muted">
             Select a position to simulate price changes
           </p>
         )}

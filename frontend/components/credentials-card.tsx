@@ -43,7 +43,7 @@ function Field({
     <div>
       <label
         htmlFor={name}
-        className="mb-1.5 block text-sm font-medium text-text-secondary"
+        className="mb-1.5 block text-body font-medium text-text-secondary"
       >
         {label}
       </label>
@@ -54,9 +54,9 @@ function Field({
         defaultValue={defaultValue}
         placeholder={placeholder}
         autoComplete="off"
-        className="w-full rounded-lg px-4 py-3 font-mono text-sm"
+        className="w-full rounded-lg px-4 py-3 font-mono text-body"
       />
-      {hint && <p className="mt-1.5 text-xs text-text-muted">{hint}</p>}
+      {hint && <p className="mt-1.5 text-caption text-text-muted">{hint}</p>}
     </div>
   );
 }
@@ -202,12 +202,12 @@ export default function CredentialsCard({ settings, onSaved }: Props) {
       </div>
 
       {saved && (
-        <div className="mt-4 rounded-lg border border-emerald/20 bg-emerald-glow px-4 py-3 text-sm text-emerald">
+        <div className="mt-4 rounded-lg border border-emerald/20 bg-emerald-glow px-4 py-3 text-body text-emerald">
           Saved
         </div>
       )}
       {error && (
-        <div className="mt-4 rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-sm text-rose">
+        <div className="mt-4 rounded-lg border border-rose/20 bg-rose-glow px-4 py-3 text-body text-rose">
           {error}
         </div>
       )}
@@ -215,7 +215,7 @@ export default function CredentialsCard({ settings, onSaved }: Props) {
       {expanded && (
         <form onSubmit={handleSubmit} className="mt-6 space-y-6">
           <div className="space-y-4 border-t border-border pt-5">
-            <p className="text-sm font-semibold">LLM Gateway</p>
+            <p className="text-body font-semibold">LLM Gateway</p>
             <Field
               label="Gateway URL"
               name="llmGatewayUrl"
@@ -236,7 +236,7 @@ export default function CredentialsCard({ settings, onSaved }: Props) {
           </div>
 
           <div className="space-y-4 border-t border-border pt-5">
-            <p className="text-sm font-semibold">Smarter model (per-stock)</p>
+            <p className="text-body font-semibold">Smarter model (per-stock)</p>
             <Field
               label="Premium gateway URL"
               name="llmPremiumGatewayUrl"
@@ -257,7 +257,7 @@ export default function CredentialsCard({ settings, onSaved }: Props) {
           </div>
 
           <div className="space-y-4 border-t border-border pt-5">
-            <p className="text-sm font-semibold">Finnhub</p>
+            <p className="text-body font-semibold">Finnhub</p>
             <Field
               label="Finnhub API key"
               name="finnhubKey"

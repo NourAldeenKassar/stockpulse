@@ -25,13 +25,15 @@ export default function PortfolioEarnings({
     <Card>
       <SectionHeading
         action={
-          <span className="text-xs text-text-muted">most recent quarter</span>
+          <span className="text-caption text-text-muted">
+            most recent quarter
+          </span>
         }
       >
         Earnings per share
       </SectionHeading>
 
-      <p className="mb-4 text-xs text-text-muted">
+      <p className="mb-4 text-caption text-text-muted">
         Reported EPS against what analysts expected. These are per-share
         figures, not totals.
       </p>
@@ -50,24 +52,24 @@ export default function PortfolioEarnings({
               className="group flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2.5 transition-colors hover:border-border-glow hover:bg-bg-card-hover sm:px-4"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium transition-colors group-hover:text-cyan">
+                <p className="truncate text-body font-medium transition-colors group-hover:text-cyan">
                   {h.name}
                 </p>
-                <p className="text-[11px] text-text-muted">{e.period}</p>
+                <p className="text-caption text-text-muted">{e.period}</p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                <span className="text-xs text-text-muted">
+                <span className="text-caption text-text-muted">
                   est {e.estimate ?? '—'}
                 </span>
-                <span className="text-sm font-semibold">
+                <span className="text-body font-semibold">
                   {e.actual ?? '—'}
-                  <span className="ml-1 text-[11px] font-normal text-text-muted">
+                  <span className="ml-1 text-caption font-normal text-text-muted">
                     {h.reportingCurrency ? `${h.reportingCurrency} ` : ''}EPS
                   </span>
                 </span>
                 {surprise !== null && (
                   <span
-                    className={`rounded px-2 py-0.5 text-xs font-bold ${bg} ${tone}`}
+                    className={`rounded px-2 py-0.5 text-caption font-bold ${bg} ${tone}`}
                   >
                     {beat ? '+' : ''}
                     {surprise.toFixed(1)}%

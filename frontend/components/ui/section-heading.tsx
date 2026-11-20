@@ -12,7 +12,7 @@ export default function SectionHeading({
 }) {
   return (
     <div className={cn('mb-4 flex items-center justify-between', className)}>
-      <h2 className="font-heading text-lg font-semibold">{children}</h2>
+      <h2 className="font-heading text-heading font-semibold">{children}</h2>
       {action}
     </div>
   );

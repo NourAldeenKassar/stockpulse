@@ -31,8 +31,8 @@ function CustomTooltip({ active, payload, hidden }: any) {
         padding: '8px 12px',
       }}
     >
-      <p className="text-sm font-medium text-text-primary">{d.name}</p>
-      <p className="text-xs text-text-muted">
+      <p className="text-body font-medium text-text-primary">{d.name}</p>
+      <p className="text-caption text-text-muted">
         <span className={hidden ? 'select-none blur-md' : ''}>
           {formatCurrency(d.value)}
         </span>{' '}
@@ -84,7 +84,9 @@ export default function AllocationChart({
 
   return (
     <div className="glass-card rounded-xl p-6">
-      <h2 className="mb-4 font-heading text-lg font-semibold">Allocation</h2>
+      <h2 className="mb-4 font-heading text-heading font-semibold">
+        Allocation
+      </h2>
       <div className="flex items-center gap-6">
         <div className="h-52 w-52 shrink-0">
           <ResponsiveContainer width="100%" height="100%">
@@ -114,7 +116,7 @@ export default function AllocationChart({
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: COLORS[i % COLORS.length] }}
               />
-              <span className="text-xs text-text-secondary">
+              <span className="text-caption text-text-secondary">
                 {item.name}{' '}
                 <span className="text-text-muted">
                   {item.percent.toFixed(1)}%

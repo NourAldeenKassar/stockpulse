@@ -19,8 +19,8 @@ function marketCap(value: number | null): string {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="mb-1 text-xs text-text-muted">{label}</p>
-      <p className="font-heading text-base font-semibold">{value}</p>
+      <p className="mb-1 text-caption text-text-muted">{label}</p>
+      <p className="font-heading text-body font-semibold">{value}</p>
     </div>
   );
 }
@@ -78,7 +78,7 @@ export default function StockFundamentals({
       </div>
 
       {position === null && high !== null && low !== null && (
-        <div className="mt-6 flex items-center justify-between text-xs text-text-muted">
+        <div className="mt-6 flex items-center justify-between text-caption text-text-muted">
           <span>52-week low {fmt(low)}</span>
           <span>
             {fundamentals.currency && fundamentals.currency !== priceCurrency
@@ -91,7 +91,7 @@ export default function StockFundamentals({
 
       {position !== null && (
         <div className="mt-6">
-          <div className="mb-2 flex items-center justify-between text-xs text-text-muted">
+          <div className="mb-2 flex items-center justify-between text-caption text-text-muted">
             <span>52-week low {fmt(low)}</span>
             <span>52-week high {fmt(high)}</span>
           </div>
@@ -102,13 +102,13 @@ export default function StockFundamentals({
               title={`Current price ${currentPrice}`}
             />
           </div>
-          <p className="mt-2 text-xs text-text-muted">
+          <p className="mt-2 text-caption text-text-muted">
             Currently {position.toFixed(0)}% of the way up its 52-week range
           </p>
         </div>
       )}
 
-      <p className="mt-5 border-t border-border pt-3 text-[11px] text-text-muted">
+      <p className="mt-5 border-t border-border pt-3 text-caption text-text-muted">
         Source: Finnhub · a dash means the figure was not covered
       </p>
     </Card>

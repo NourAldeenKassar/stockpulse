@@ -38,7 +38,7 @@ export default function AnalystConsensusPanel({
     <Card>
       <SectionHeading
         action={
-          <span className="text-xs text-text-muted">
+          <span className="text-caption text-text-muted">
             {consensus.trends.length} months
           </span>
         }
@@ -47,12 +47,12 @@ export default function AnalystConsensusPanel({
       </SectionHeading>
 
       <div className="mb-1 flex items-baseline gap-2">
-        <span className="font-heading text-2xl font-bold">{count}</span>
-        <span className="text-sm text-text-secondary">
+        <span className="font-heading text-display font-bold">{count}</span>
+        <span className="text-body text-text-secondary">
           analysts covering {consensus.symbol}
         </span>
       </div>
-      <p className="mb-4 text-xs text-text-muted">
+      <p className="mb-4 text-caption text-text-muted">
         {formatPeriod(latest.period)}
       </p>
 
@@ -77,21 +77,23 @@ export default function AnalystConsensusPanel({
       <div className="mb-5 grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3">
         {RATINGS.map((r) => (
           <div key={r.key} className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-xs text-text-secondary">
+            <span className="flex items-center gap-2 text-caption text-text-secondary">
               <span
                 className="h-2 w-2 rounded-full"
                 style={{ backgroundColor: r.color }}
               />
               {r.label}
             </span>
-            <span className="text-xs font-semibold">{latest[r.key] || 0}</span>
+            <span className="text-caption font-semibold">
+              {latest[r.key] || 0}
+            </span>
           </div>
         ))}
       </div>
 
       {consensus.trends.length > 1 && (
         <div>
-          <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-text-muted">
+          <p className="mb-2 text-caption font-medium uppercase tracking-wider text-text-muted">
             Recent months
           </p>
           <div className="space-y-1.5">
@@ -100,7 +102,7 @@ export default function AnalystConsensusPanel({
               if (t === 0) return null;
               return (
                 <div key={trend.period} className="flex items-center gap-3">
-                  <span className="w-20 shrink-0 text-[11px] text-text-muted">
+                  <span className="w-20 shrink-0 text-caption text-text-muted">
                     {formatPeriod(trend.period)}
                   </span>
                   <div className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-bg-card">
@@ -126,7 +128,7 @@ export default function AnalystConsensusPanel({
         </div>
       )}
 
-      <p className="mt-5 border-t border-border pt-3 text-[11px] text-text-muted">
+      <p className="mt-5 border-t border-border pt-3 text-caption text-text-muted">
         Source: Finnhub · fetched <LocalTime iso={consensus.fetchedAt} />
         {consensus.industry ? ` · ${consensus.industry}` : ''}
       </p>

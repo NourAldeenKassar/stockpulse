@@ -104,12 +104,25 @@ export default function HealthScore({ summary, positions }: Props) {
 
   const color = getScoreColor(total);
   const label = getScoreLabel(total);
-  const circumference = 2 * Math.PI * 54;
-  const offset = circumference - (total / 100) * circumference;
+  const RADIUS = 54;
+  const STROKE = 8;
+  const circumference = 2 * Math.PI * RADIUS;
+
+  // Four components of 25 each, but clamp anyway: a score outside 0-100 would
+  // draw a negative or overlapping arc.
+  const fraction = Math.min(100, Math.max(0, total)) / 100;
+
+  /**
+   * A round cap extends half the stroke width beyond each end of the dash, so
+   * a dash drawn at exactly the score reads longer than the score. Subtracting
+   * the overhang makes the visible arc match the number it represents.
+   */
+  const capOverhang = total > 0 && total < 100 ? STROKE : 0;
+  const arcLength = Math.max(0, fraction * circumference - capOverhang);
 
   return (
     <div className="glass-card rounded-xl p-6">
-      <h2 className="mb-4 font-heading text-lg font-semibold">
+      <h2 className="mb-4 font-heading text-heading font-semibold">
         Portfolio Health
       </h2>
 
@@ -119,32 +132,37 @@ export default function HealthScore({ summary, positions }: Props) {
             <circle
               cx="60"
               cy="60"
-              r="54"
+              r={RADIUS}
               fill="none"
               stroke="rgba(255,255,255,0.05)"
-              strokeWidth="8"
+              strokeWidth={STROKE}
             />
             <circle
               cx="60"
               cy="60"
-              r="54"
+              r={RADIUS}
               fill="none"
               stroke={color}
-              strokeWidth="8"
+              strokeWidth={STROKE}
               strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={offset}
+              strokeDasharray={`${arcLength} ${circumference}`}
+              strokeDashoffset={capOverhang / 2}
               className="transition-all duration-1000 ease-out"
               style={{
-                filter: `drop-shadow(0 0 8px ${color})`,
+                // A softer glow: at 8px the halo spread far enough past the
+                // cap to read as extra arc.
+                filter: `drop-shadow(0 0 3px ${color})`,
               }}
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-heading text-3xl font-bold" style={{ color }}>
+            <span
+              className="font-heading text-display font-bold"
+              style={{ color }}
+            >
               {total}
             </span>
-            <span className="text-xs text-text-muted">{label}</span>
+            <span className="text-caption text-text-muted">{label}</span>
           </div>
         </div>
 
@@ -152,10 +170,10 @@ export default function HealthScore({ summary, positions }: Props) {
           {breakdown.map((item) => (
             <div key={item.label}>
               <div className="mb-1 flex items-center justify-between">
-                <span className="text-xs text-text-secondary">
+                <span className="text-caption text-text-secondary">
                   {item.label}
                 </span>
-                <span className="text-xs text-text-muted">
+                <span className="text-caption text-text-muted">
                   {item.detail} ({item.score}/{item.maxScore})
                 </span>
               </div>

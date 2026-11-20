@@ -46,7 +46,7 @@ export default function PortfolioSentiment({
     <Card>
       <SectionHeading
         action={
-          <span className="flex items-center gap-2 text-xs text-text-muted">
+          <span className="flex items-center gap-2 text-caption text-text-muted">
             {overview.covered} of {overview.total} covered
             {onRefresh && (
               <Button variant="ghost" size="sm" onClick={onRefresh}>
@@ -60,22 +60,22 @@ export default function PortfolioSentiment({
       </SectionHeading>
 
       {!t ? (
-        <p className="text-sm text-text-muted">
+        <p className="text-body text-text-muted">
           None of your holdings have analyst coverage. Funds and ETFs generally
           do not, and smaller non-US listings often cannot be matched.
         </p>
       ) : (
         <>
           <div className="mb-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className={`font-heading text-2xl font-bold ${v.tone}`}>
+            <span className={`font-heading text-display font-bold ${v.tone}`}>
               {v.label}
             </span>
-            <span className="text-sm text-text-secondary">
+            <span className="text-body text-text-secondary">
               across {overview.covered} rated{' '}
               {overview.covered === 1 ? 'holding' : 'holdings'}
             </span>
           </div>
-          <p className="mb-4 text-xs text-text-muted">
+          <p className="mb-4 text-caption text-text-muted">
             Weighted by position size, so your largest holdings count most
           </p>
 
@@ -101,7 +101,7 @@ export default function PortfolioSentiment({
             {RATINGS.map((r) => (
               <span
                 key={r.key}
-                className="flex items-center gap-1.5 text-xs text-text-secondary"
+                className="flex items-center gap-1.5 text-caption text-text-secondary"
               >
                 <span
                   className="h-2 w-2 shrink-0 rounded-full"
@@ -120,7 +120,7 @@ export default function PortfolioSentiment({
 
       {rated.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-text-muted">
+          <p className="text-caption font-medium uppercase tracking-wider text-text-muted">
             By holding
           </p>
           {rated.map((h) => {
@@ -132,7 +132,7 @@ export default function PortfolioSentiment({
                 href={`/stocks/${encodeURIComponent(h.ticker)}?account=${accountId}`}
                 className="group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-bg-card-hover"
               >
-                <span className="w-28 shrink-0 truncate text-sm font-medium transition-colors group-hover:text-cyan sm:w-40">
+                <span className="w-28 shrink-0 truncate text-body font-medium transition-colors group-hover:text-cyan sm:w-40">
                   {h.name}
                 </span>
                 <div className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-bg-card">
@@ -151,7 +151,7 @@ export default function PortfolioSentiment({
                     );
                   })}
                 </div>
-                <span className="w-16 shrink-0 text-right text-xs text-text-muted">
+                <span className="w-16 shrink-0 text-right text-caption text-text-muted">
                   {bullish.toFixed(0)}% buy
                 </span>
               </Link>
@@ -160,7 +160,7 @@ export default function PortfolioSentiment({
         </div>
       )}
 
-      <p className="mt-5 border-t border-border pt-3 text-[11px] text-text-muted">
+      <p className="mt-5 border-t border-border pt-3 text-caption text-text-muted">
         Source: Finnhub analyst recommendation counts · cached, fetched{' '}
         <LocalTime iso={overview.fetchedAt} />
       </p>

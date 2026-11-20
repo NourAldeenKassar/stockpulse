@@ -6,6 +6,7 @@ import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import type { Position } from '@/lib/types';
 import { pplPercent } from '@/lib/metrics';
 import { pnlColor } from '@/lib/rating-palette';
+import { BODY_PX, CAPTION_PX } from '@/lib/type-scale';
 import { formatCurrency } from '@/lib/format';
 
 function CustomContent(props: any) {
@@ -36,7 +37,7 @@ function CustomContent(props: any) {
             y={y + height / 2 - 6}
             textAnchor="middle"
             fill={pnlColor(pplPercent ?? 0).text}
-            fontSize={width > 80 ? 12 : 10}
+            fontSize={CAPTION_PX}
             fontWeight="600"
           >
             {name}
@@ -46,7 +47,7 @@ function CustomContent(props: any) {
             y={y + height / 2 + 10}
             textAnchor="middle"
             fill={pnlColor(pplPercent ?? 0).text}
-            fontSize={10}
+            fontSize={CAPTION_PX}
             opacity={0.85}
           >
             {pplPercent >= 0 ? '+' : ''}
@@ -71,17 +72,17 @@ function CustomTooltip({ active, payload }: any) {
         zIndex: 50,
       }}
     >
-      <p style={{ color: '#f0f0f0', fontSize: 13, fontWeight: 600 }}>
+      <p style={{ color: '#f0f0f0', fontSize: BODY_PX, fontWeight: 600 }}>
         {d.fullName}
       </p>
       <div style={{ marginTop: 4, display: 'flex', gap: 12 }}>
-        <span style={{ color: '#94a3b8', fontSize: 12 }}>
+        <span style={{ color: '#94a3b8', fontSize: CAPTION_PX }}>
           Value: {formatCurrency(d.size)}
         </span>
         <span
           style={{
             color: d.pplPercent >= 0 ? '#10b981' : '#f43f5e',
-            fontSize: 12,
+            fontSize: CAPTION_PX,
             fontWeight: 600,
           }}
         >
@@ -89,7 +90,7 @@ function CustomTooltip({ active, payload }: any) {
           {d.pplPercent?.toFixed(2)}%
         </span>
       </div>
-      <span style={{ color: '#64748b', fontSize: 11 }}>
+      <span style={{ color: '#64748b', fontSize: CAPTION_PX }}>
         P&L: {formatCurrency(d.ppl)}
       </span>
     </div>
@@ -130,8 +131,10 @@ export default function PositionHeatmap({
   return (
     <div className="glass-card rounded-xl p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-heading text-lg font-semibold">Position Heatmap</h2>
-        <div className="flex items-center gap-2 text-xs text-text-muted">
+        <h2 className="font-heading text-heading font-semibold">
+          Position Heatmap
+        </h2>
+        <div className="flex items-center gap-2 text-caption text-text-muted">
           <span className="flex items-center gap-1">
             <span
               className="inline-block h-2.5 w-2.5 rounded"
